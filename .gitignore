@@ -1,16 +1,33 @@
-```text
-# Ignore the master download folder
+# ========================
+# 📂 Downloaded Content (NEVER UPLOAD)
+# ========================
 Rem God/
+Safebooru/
+Rule34/
+Zerochan/
+Waifu.im/
+Nekos.best/
+*.json
 
-# Ignore Python cache
+# ========================
+# 🖼️ Personal Wallpapers Filter
+# ========================
+# هر عکسی که در این پوشه فرعی بگذاری آپلود نخواهد شد
+web/wallpaper/personal/
+
+# ========================
+# 🐍 Python & Virtual Environments
+# ========================
 __pycache__/
 *.pyc
-
-# Ignore virtual environments
+*.pyo
 venv/
 env/
+.env
 
-# Ignore PyInstaller build folders
+# ========================
+# 🛠️ Build & Executable Files
+# ========================
 build/
 dist/
 *.spec
