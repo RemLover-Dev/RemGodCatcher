@@ -144,7 +144,7 @@ The UI uses **Inter** (Google Fonts) for the interface and **Source Code Pro** f
 2. Go to **My Account** -> **Settings**
 3. Find the **API Key** section -> **Generate API Key**
 4. Copy your **User ID** from the profile URL
-5. Enter both in the **API Keys** tab of the Web UI
+5. Enter both in the **Options** tab of the Web UI
 
 > Never share your API keys publicly.
 

@@ -6,52 +6,79 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [2.0.0] - 2025-01-01
+## [2.1.0] - 2026-06-26
+
+### Added
+
+- **Options Tab** -- Renamed "API Keys" to "Options". Added configurable download settings (API Timeout, Retry Wait, Anti-Ban Pause) directly in the Web UI.
+- **Waifu.im Tag Database (`tags.json`)** -- Local tag database with name-to-slug conversion. Typing "Genshin Impact" now correctly sends "genshin-impact" to the API.
+- **Download Settings in `.env`** -- Added `API_TIMEOUT`, `RETRY_WAIT`, `ANTI_BAN_PAUSE` fields. All settings persist across restarts.
+- **Safebooru Empty Page Breaker** -- Worker now stops after 3 consecutive pages with no downloads, preventing infinite loops on slow networks.
+- **Rule34 Proxy Injection** -- Proxy settings are now injected into `rule34Py`'s internal session (`client.session.proxies`), so image downloads also go through the proxy.
+- **Safebooru Parentheses Support** -- Parentheses in tag names (e.g., `rem_(re:zero)`) are now handled correctly via URL params instead of stripping them.
+
+### Fixed
+
+- **Rule34 API Key Format** -- Fixed `client.api_key` format. The library expects raw key string, not `&api_key=...` prefix.
+- **Rule34 Image Download Proxy** -- Changed `requests.get()` to `client.session.get()` for image downloads, so proxy settings are applied.
+- **Waifu.im NSFW Parameter** -- Changed `"True"` to `"true"` for `IsNsfw` parameter (API requires lowercase).
+- **Waifu.im Empty Results** -- Now shows available tags when a tag doesn't exist, instead of generic "End of database reached".
+- **Safebooru Cloudflare Handling** -- Improved error messaging for 403 responses.
+- **Console Log Scrolling** -- Fixed flex layout so only the terminal area scrolls, not the entire page.
+- **Options Tab Scrolling** -- Options tab content is now scrollable when it overflows.
+- **Tab Display Mode** -- Changed from `display: block` to `display: flex` for proper height distribution.
+
+### Changed
+
+- **Console Font** -- Replaced JetBrains Mono with **Source Code Pro** (Google Fonts) for softer, eye-friendly terminal text.
+- **Tab Name** -- "API Keys" renamed to **"Options"**.
+- **Safebooru Worker** -- Added `page_downloaded` counter and `empty_pages` tracker to prevent infinite loops.
+- **All Workers** -- Now read `api_timeout`, `retry_wait`, `anti_ban_pause` from `net_config` for configurable behavior.
+
+### Removed
+
+- **"Resting..." Log Message** -- Removed from Waifu.im worker to reduce log noise.
+- **Parentheses Stripping** -- No longer removes `()` from Safebooru tags (they are valid and required).
+
+---
+
+## [2.0.0] - 2026-06-25
 
 ### Major Changes
 
 - **Migrated from Eel to Flask + Socket.IO** -- The Web UI no longer requires Chrome/Chromium. It now opens in your default browser via a local Flask server.
-- **Added Web-based Proxy Configuration** -- Proxy settings (enable/disable, URL, TLS verify) are now configurable directly from the Web UI's Main tab. Settings persist in `.env`.
+- **Added Web-based Proxy Configuration** -- Proxy settings are now configurable directly from the Web UI's Main tab.
 
 ### Added
 
-- **API Keys Tab** -- New tab in the Web UI to manage Rule34 API credentials without editing code.
+- **Options Tab** -- New tab in the Web UI to manage Rule34 API credentials and download settings.
 - **Socket.IO Real-Time Logging** -- Console logs are pushed to the browser via WebSocket for instant feedback.
-- **Waifu.im Tag Database (`tags.json`)** -- Local tag database with name-to-slug conversion. Typing "Genshin Impact" now correctly sends "genshin-impact" to the API.
 - **Persistent Proxy Settings** -- Proxy configuration is saved to `.env` and restored on restart.
-- **Google Fonts Integration** -- Inter font loaded from Google Fonts CDN for a modern, clean UI.
+- **Google Fonts Integration** -- Inter font loaded from Google Fonts CDN.
 - **Custom Scrollbar Styling** -- Scrollbar appearance customized for the console log panels.
-- **Input Focus States** -- Added focus ring animations on input fields for better UX.
-- **Checkbox Styling** -- Checkboxes now use the cyan accent color to match the theme.
+- **Input Focus States** -- Added focus ring animations on input fields.
+- **Checkbox Styling** -- Checkboxes now use the cyan accent color.
 
 ### Fixed
 
-- **Font Path Mismatch** -- CSS referenced `Playfair-VariableFont_wdth,opsz.ttf` but the actual file was `PlayfairDisplay-VariableFont_wght.ttf`. Both CSS and Python font loading paths corrected.
-- **Input Border Color Bug** -- CSS had `rgba(255, 255, 25, 0.3)` (missing a `2` in the green channel). Fixed to `rgba(255, 255, 255, 0.3)`.
-- **Console Log XSS** -- Replaced `innerHTML += text\n` with `document.createElement("div")` to prevent HTML injection in log messages.
-- **Hardcoded API Keys** -- Removed hardcoded `api_key` and `user_id` from source code. Moved to `.env` file via `python-dotenv`.
-- **Rule34 API Key Format** -- Fixed `client.api_key` format. The library expects raw key string, not `&api_key=...` prefix (the library adds params internally).
-- **Rule34 Proxy Injection** -- Proxy settings are now injected into `rule34Py`'s internal session via `client.session.proxies`.
-- **Waifu.im NSFW Parameter** -- Changed `"True"` to `"true"` for `IsNsfw` parameter (API requires lowercase).
-- **Waifu.im Empty Results Message** -- Now shows available tags when a tag doesn't exist, instead of generic "End of database reached".
-- **Safebooru Parentheses in Tags** -- Parentheses in tag names (e.g., `femboy_hooters_(meme)`) are now stripped to prevent URL encoding issues.
-- **Safebooru Cloudflare Handling** -- Improved error messaging for 403 responses (Cloudflare blocks).
-- **Removed Unused Global Variables** -- Cleaned up `RULE34_API_KEY` and `RULE34_USER_ID` global references.
+- **Font Path Mismatch** -- CSS referenced wrong font filename. Both CSS and Python paths corrected.
+- **Input Border Color Bug** -- CSS had wrong RGB value. Fixed.
+- **Console Log XSS** -- Replaced `innerHTML +=` with `document.createElement()` to prevent injection.
+- **Hardcoded API Keys** -- Removed from source code. Moved to `.env` file.
+- **Waifu.im NSFW Parameter** -- Lowercase fix.
 
 ### Changed
 
-- **Font**: Replaced Playfair + MonoLisa with **Inter** (Google Fonts) for the UI. Console uses JetBrains Mono/Consolas fallback.
-- **CSS**: Complete rewrite with glass-morphism improvements, better spacing, hover effects, and dark theme refinements.
-- **HTML**: Added viewport meta tag, Socket.IO CDN script, and restructured tab content.
-- **JavaScript**: Full rewrite -- all `eel.xxx()` calls replaced with `fetch()` REST API + `socket.emit()` for WebSocket events.
-- **Python**: Removed `eel`, `customtkinter` dependencies. Added `flask`, `flask-socketio`, `webbrowser`. Removed tkinter startup config window (now in Web UI).
-- **README**: Rewritten with badges, project structure, platform comparison table, and setup instructions.
-- **.env**: Added `USE_PROXY`, `PROXY_URL`, `VERIFY_TLS` fields alongside API keys.
+- **Font**: Replaced Playfair with **Inter** (Google Fonts). Console uses **Source Code Pro**.
+- **CSS**: Complete rewrite with glass-morphism improvements.
+- **JavaScript**: Full rewrite -- `eel.xxx()` replaced with `fetch()` + `socket.emit()`.
+- **Python**: Removed `eel`, `customtkinter`. Added `flask`, `flask-socketio`.
+- **README**: Rewritten with badges, project structure, and setup instructions.
 
 ### Removed
 
-- **CustomTkinter Startup Window** -- The pre-flight network config window (tkinter) was removed. All settings are now in the Web UI.
-- **`eel` dependency** -- No longer required. Replaced by Flask + Socket.IO.
+- **CustomTkinter Startup Window** -- All settings now in Web UI.
+- **`eel` dependency** -- Replaced by Flask + Socket.IO.
 - **`customtkinter` dependency** -- No longer required.
 
 ---
