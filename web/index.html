@@ -200,6 +200,31 @@
                 </div>
 
                 <div id="apiSaveStatus" style="margin-top: 15px; color: #00d2d3; font-size: 14px; min-height: 20px;"></div>
+
+                <div style="margin-top: 25px; padding: 14px; background: rgba(0,0,0,0.4); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                    <p style="color: #00d2d3; font-size: 14px; font-weight: bold; margin-bottom: 12px;">Download Settings</p>
+                    <div class="input-group" style="flex-wrap: wrap; gap: 15px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="min-width: 120px; font-size: 13px;">API Timeout:</label>
+                            <input type="number" id="apiTimeout" value="10" style="width: 70px;">
+                            <span style="font-size: 12px; color: gray;">sec</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="min-width: 120px; font-size: 13px;">Retry Wait:</label>
+                            <input type="number" id="retryWait" value="5" style="width: 70px;">
+                            <span style="font-size: 12px; color: gray;">sec</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="min-width: 120px; font-size: 13px;">Anti-Ban Pause:</label>
+                            <input type="number" id="antiBanPause" value="3" step="0.5" style="width: 70px;">
+                            <span style="font-size: 12px; color: gray;">sec</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <button class="action-btn" onclick="saveDownloadSettings()">Save Settings</button>
+                        <span id="dlSettingsStatus" style="margin-left: 10px; font-size: 12px; color: gray;"></span>
+                    </div>
+                </div>
                 
                 <div style="margin-top: 25px; padding: 12px; background: rgba(0,0,0,0.4); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
                     <p style="color: #ff9ff3; font-size: 13px; font-weight: bold; margin-bottom: 8px;">How to get your Rule34 API Key:</p>

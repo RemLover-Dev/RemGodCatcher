@@ -20,6 +20,9 @@ window.onload = async function() {
             document.getElementById("proxyEnabled").checked = config.use_proxy || false;
             document.getElementById("proxyUrl").value = config.proxy_url || "http://127.0.0.1:10808";
             document.getElementById("tlsVerify").checked = config.verify_tls || false;
+            document.getElementById("apiTimeout").value = config.api_timeout || 10;
+            document.getElementById("retryWait").value = config.retry_wait || 5;
+            document.getElementById("antiBanPause").value = config.anti_ban_pause || 3;
         }
     } catch(e) { console.error("Config load error:", e); }
 
@@ -363,5 +366,33 @@ function toggleApiKeyVisibility() {
     } else {
         input.type = "password";
         btn.textContent = "Show";
+    }
+}
+
+// ==========================================
+// === DOWNLOAD SETTINGS ===
+// ==========================================
+async function saveDownloadSettings() {
+    globalNetConfig.api_timeout = document.getElementById("apiTimeout").value;
+    globalNetConfig.retry_wait = document.getElementById("retryWait").value;
+    globalNetConfig.anti_ban_pause = document.getElementById("antiBanPause").value;
+
+    try {
+        let resp = await fetch("/api/config", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(globalNetConfig)
+        });
+        let result = await resp.json();
+        if (result.success) {
+            let status = document.getElementById("dlSettingsStatus");
+            status.style.color = "#00d2d3";
+            status.textContent = "Saved!";
+            setTimeout(() => status.textContent = "", 2000);
+        }
+    } catch(e) {
+        let status = document.getElementById("dlSettingsStatus");
+        status.style.color = "#ff9ff3";
+        status.textContent = "Error: " + e;
     }
 }

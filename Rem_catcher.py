@@ -36,7 +36,10 @@ HISTORY_LOCK = threading.Lock()
 STARTUP_CONFIG = {
     "use_proxy": os.getenv("USE_PROXY", "false").lower() == "true",
     "proxy_url": os.getenv("PROXY_URL", "http://127.0.0.1:10808"),
-    "verify_tls": os.getenv("VERIFY_TLS", "false").lower() == "true"
+    "verify_tls": os.getenv("VERIFY_TLS", "false").lower() == "true",
+    "api_timeout": int(os.getenv("API_TIMEOUT", "10")),
+    "retry_wait": int(os.getenv("RETRY_WAIT", "5")),
+    "anti_ban_pause": float(os.getenv("ANTI_BAN_PAUSE", "3.0"))
 }
 
 # ==========================================
@@ -158,36 +161,43 @@ def set_config():
     STARTUP_CONFIG["use_proxy"] = data.get("use_proxy", False)
     STARTUP_CONFIG["proxy_url"] = data.get("proxy_url", "http://127.0.0.1:10808")
     STARTUP_CONFIG["verify_tls"] = data.get("verify_tls", False)
+    STARTUP_CONFIG["api_timeout"] = int(data.get("api_timeout", 10))
+    STARTUP_CONFIG["retry_wait"] = int(data.get("retry_wait", 5))
+    STARTUP_CONFIG["anti_ban_pause"] = float(data.get("anti_ban_pause", 3.0))
 
-    # Save proxy settings to .env
+    # Save all settings to .env
     env_path = os.path.join(BASE_DIR, ".env")
     lines = []
     if os.path.exists(env_path):
         with open(env_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
+    env_keys = {
+        "USE_PROXY": str(STARTUP_CONFIG['use_proxy']).lower(),
+        "PROXY_URL": STARTUP_CONFIG['proxy_url'],
+        "VERIFY_TLS": str(STARTUP_CONFIG['verify_tls']).lower(),
+        "API_TIMEOUT": str(STARTUP_CONFIG['api_timeout']),
+        "RETRY_WAIT": str(STARTUP_CONFIG['retry_wait']),
+        "ANTI_BAN_PAUSE": str(STARTUP_CONFIG['anti_ban_pause'])
+    }
+
     new_lines = []
-    found = {"USE_PROXY": False, "PROXY_URL": False, "VERIFY_TLS": False}
+    found = {k: False for k in env_keys}
     for line in lines:
         stripped = line.strip()
-        if stripped.startswith("USE_PROXY="):
-            new_lines.append(f"USE_PROXY={str(STARTUP_CONFIG['use_proxy']).lower()}\n")
-            found["USE_PROXY"] = True
-        elif stripped.startswith("PROXY_URL="):
-            new_lines.append(f"PROXY_URL={STARTUP_CONFIG['proxy_url']}\n")
-            found["PROXY_URL"] = True
-        elif stripped.startswith("VERIFY_TLS="):
-            new_lines.append(f"VERIFY_TLS={str(STARTUP_CONFIG['verify_tls']).lower()}\n")
-            found["VERIFY_TLS"] = True
-        else:
+        matched = False
+        for key, val in env_keys.items():
+            if stripped.startswith(f"{key}="):
+                new_lines.append(f"{key}={val}\n")
+                found[key] = True
+                matched = True
+                break
+        if not matched:
             new_lines.append(line)
 
-    if not found["USE_PROXY"]:
-        new_lines.append(f"USE_PROXY={str(STARTUP_CONFIG['use_proxy']).lower()}\n")
-    if not found["PROXY_URL"]:
-        new_lines.append(f"PROXY_URL={STARTUP_CONFIG['proxy_url']}\n")
-    if not found["VERIFY_TLS"]:
-        new_lines.append(f"VERIFY_TLS={str(STARTUP_CONFIG['verify_tls']).lower()}\n")
+    for key, val in env_keys.items():
+        if not found[key]:
+            new_lines.append(f"{key}={val}\n")
 
     with open(env_path, "w", encoding="utf-8") as f:
         f.writelines(new_lines)
@@ -782,6 +792,10 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
     STOP_EVENTS[name] = threading.Event()
     stop_event = STOP_EVENTS[name]
 
+    api_timeout = int(net_config.get("api_timeout", 10))
+    retry_wait = int(net_config.get("retry_wait", 5))
+    anti_ban_pause = float(net_config.get("anti_ban_pause", 3.0))
+
     tag = tag.lower()
     slug = waifu_name_to_slug(tag)
     log_msg(name, f"Initializing worker for tag: '{tag}' -> slug: '{slug}' (NSFW: {is_nsfw})")
@@ -803,7 +817,7 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
 
         try:
             log_msg(name, "Scanning API...")
-            resp = session.get("https://api.waifu.im/images", params=params, timeout=15)
+            resp = session.get("https://api.waifu.im/images", params=params, timeout=api_timeout)
             if resp.status_code == 404:
                 log_msg(name, "ERROR 404: Tag not found!")
                 break
@@ -822,8 +836,8 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
                     log_msg(name, f"No images found for '{tag}'. Tag may not exist on Waifu.im.")
                 break
         except Exception as e:
-            log_msg(name, f"API Error: {e}")
-            time.sleep(5)
+            log_msg(name, f"API Error: {e}. Retrying in {retry_wait}s...")
+            time.sleep(retry_wait)
             continue
 
         for img in items:
@@ -840,7 +854,7 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
                 continue
 
             try:
-                r = session.get(url, stream=True, timeout=15)
+                r = session.get(url, stream=True, timeout=api_timeout)
                 r.raise_for_status()
                 with open(filepath, 'wb') as f:
                     for chunk in r.iter_content(8192):
@@ -856,14 +870,11 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
                 save_history(site_root, dl_history)
 
                 log_msg(name, f"[SUCCESS] Downloaded {filename} ({downloaded}/{amount})")
-                time.sleep(random.uniform(0.6, 1.0))
             except Exception as e:
                 log_msg(name, f"[FAILED] {filename}: {e}")
 
         if not stop_event.is_set() and (amount == 0 or downloaded < amount):
-            delay = random.uniform(0.6, 1.0)
-            log_msg(name, f"Resting... ({delay:.1f}s)")
-            time.sleep(delay)
+            time.sleep(anti_ban_pause)
 
     log_msg(name, "--- Worker Terminated ---")
 
