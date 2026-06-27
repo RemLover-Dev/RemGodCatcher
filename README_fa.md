@@ -37,7 +37,7 @@
 ### ۱. کلون مخزن
 
 ```bash
-git clone https://github.com/YourUsername/Rem-God-Catcher.git
+git https://github.com/RemLover-Dev/RemGodCatcher.git
 cd Rem-God-Catcher
 ```
 
