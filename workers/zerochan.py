@@ -50,6 +50,7 @@ def worker_zerochan(tag, amount, net_config):
             log_msg(name, f"Network/Limit: {e}")
             break
 
+        page_downloaded = 0
         for item in items:
             if stop_event.is_set() or (amount > 0 and downloaded >= amount): break
             try:
@@ -76,6 +77,7 @@ def worker_zerochan(tag, amount, net_config):
                     break
 
                 downloaded += 1
+                page_downloaded += 1
                 dl_history.add(filename)
                 save_history(site_root, dl_history)
 
@@ -85,7 +87,7 @@ def worker_zerochan(tag, amount, net_config):
                 log_msg(name, f"[FAILED] {filename}")
 
         page += 1
-        if not stop_event.is_set() and (amount == 0 or downloaded < amount):
+        if page_downloaded > 0 and not stop_event.is_set() and (amount == 0 or downloaded < amount):
             delay = random.uniform(3.0, 6.0)
             log_msg(name, f"Stealth delay... ({delay:.1f}s)")
             time.sleep(delay)

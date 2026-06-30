@@ -192,6 +192,36 @@ async function fetchSafe(val) {
     } catch(e) { console.error(e); }
 }
 
+async function fetchGelbooru(val) {
+    if(val.length < 2) return;
+    try {
+        let resp = await fetch("/api/tags/gelbooru", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ query: val, net_config: globalNetConfig })
+        });
+        let tags = await resp.json();
+        let dl = document.getElementById("gelbooruList");
+        dl.innerHTML = "";
+        tags.forEach(t => dl.innerHTML += `<option value="${t}">`);
+    } catch(e) { console.error(e); }
+}
+
+async function fetchGelbooru(val) {
+    if(val.length < 2) return;
+    try {
+        let resp = await fetch("/api/tags/gelbooru", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ query: val, net_config: globalNetConfig })
+        });
+        let tags = await resp.json();
+        let dl = document.getElementById("gelbooruList");
+        dl.innerHTML = "";
+        tags.forEach(t => dl.innerHTML += `<option value="${t}">`);
+    } catch(e) { console.error(e); }
+}
+
 async function fetchRule34(val) {
     if(val.length < 2) return;
     try {
@@ -232,9 +262,11 @@ function logToConsole(tabID, msg) {
     let boxMap = {
         "main": "consoleLog_main",
         "neko": "consoleLog_neko",
+        "nekos_life": "consoleLog_nekos_life",
         "zero": "consoleLog_zero",
         "waifu": "consoleLog_waifu",
         "safe": "consoleLog_safe",
+        "gelbooru": "consoleLog_gelbooru",
         "rule34": "consoleLog_rule34"
     };
     
@@ -274,11 +306,29 @@ function startWorker(workerName) {
             if(!tag) return logToConsole('neko', 'Error: Category cannot be empty!');
             socket.emit("start_worker", { worker: 'neko', category: tag, limit: limit, net_config: globalNetConfig });
         }
+        else if (workerName === 'nekos_life') {
+            let tag = document.getElementById('nekosLifeCat').value;
+            let limit = document.getElementById('nekosLifeAmount').value;
+            if(!tag) return logToConsole('nekos_life', 'Error: Category cannot be empty!');
+            let net = Object.assign({}, globalNetConfig);
+            net.nekos_life_exclude_gif = document.getElementById('nekosLifeExGif').checked;
+            net.nekos_life_exclude_img = document.getElementById('nekosLifeExImg').checked;
+            socket.emit("start_worker", { worker: 'nekos_life', category: tag, limit: limit, net_config: net });
+        }
         else if (workerName === 'safe') {
             let tag = document.getElementById('safeTag').value;
             let limit = document.getElementById('safeLimit').value;
             if(!tag) return logToConsole('safe', 'Error: Search Tags cannot be empty!');
             socket.emit("start_worker", { worker: 'safe', tag: tag, limit: limit, net_config: globalNetConfig });
+        }
+        else if (workerName === 'gelbooru') {
+            let tag = document.getElementById('gelbooruTag').value;
+            let limit = document.getElementById('gelbooruLimit').value;
+            if(!tag) return logToConsole('gelbooru', 'Error: Search Tags cannot be empty!');
+            let exclusions = [];
+            if (document.getElementById('gelbooruExVideo').checked) exclusions.push('-video');
+            if (document.getElementById('gelbooruExGif').checked) exclusions.push('-gif');
+            socket.emit("start_worker", { worker: 'gelbooru', tag: tag, limit: limit, exclusions: exclusions, net_config: globalNetConfig });
         }
         else if (workerName === 'rule34') {
             let tag = document.getElementById('rule34Tag').value;
@@ -324,27 +374,30 @@ async function loadApiSettings() {
         let settings = await resp.json();
         document.getElementById("apiKeyInput").value = settings.rule34_api_key || "";
         document.getElementById("apiUserIdInput").value = settings.rule34_user_id || "";
+        document.getElementById("gelbooruApiKeyInput").value = settings.gelbooru_api_key || "";
+        document.getElementById("gelbooruUserIdInput").value = settings.gelbooru_user_id || "";
     } catch(e) {
         console.error("Failed to load API settings:", e);
     }
 }
 
 async function saveApiSettings() {
-    let apiKey = document.getElementById("apiKeyInput").value.trim();
-    let userId = document.getElementById("apiUserIdInput").value.trim();
+    let rule34Key = document.getElementById("apiKeyInput").value.trim();
+    let rule34Uid = document.getElementById("apiUserIdInput").value.trim();
+    let gelKey = document.getElementById("gelbooruApiKeyInput").value.trim();
+    let gelUid = document.getElementById("gelbooruUserIdInput").value.trim();
     let statusEl = document.getElementById("apiSaveStatus");
-
-    if (!apiKey || !userId) {
-        statusEl.style.color = "#ff9ff3";
-        statusEl.textContent = "Error: Both API Key and User ID are required!";
-        return;
-    }
 
     try {
         let resp = await fetch("/api/api-settings", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ rule34_api_key: apiKey, rule34_user_id: userId })
+            body: JSON.stringify({
+                rule34_api_key: rule34Key,
+                rule34_user_id: rule34Uid,
+                gelbooru_api_key: gelKey,
+                gelbooru_user_id: gelUid,
+            })
         });
         let result = await resp.json();
         if (result.success) {
@@ -362,6 +415,50 @@ async function saveApiSettings() {
 
 function toggleApiKeyVisibility() {
     let input = document.getElementById("apiKeyInput");
+    let btn = event.target;
+    if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "Hide";
+    } else {
+        input.type = "password";
+        btn.textContent = "Show";
+    }
+}
+
+function saveGelbooruApiSettings() {
+    let gelKey = document.getElementById("gelbooruApiKeyInput").value.trim();
+    let gelUid = document.getElementById("gelbooruUserIdInput").value.trim();
+    let statusEl = document.getElementById("gelbooruApiSaveStatus");
+
+    fetch("/api/api-settings", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            rule34_api_key: document.getElementById("apiKeyInput").value.trim(),
+            rule34_user_id: document.getElementById("apiUserIdInput").value.trim(),
+            gelbooru_api_key: gelKey,
+            gelbooru_user_id: gelUid,
+        })
+    })
+    .then(r => r.json())
+    .then(result => {
+        if (result.success) {
+            statusEl.style.color = "#00d2d3";
+            statusEl.textContent = "Saved!";
+        } else {
+            statusEl.style.color = "#ff9ff3";
+            statusEl.textContent = "Error saving.";
+        }
+        setTimeout(() => { statusEl.textContent = ""; }, 2500);
+    })
+    .catch(() => {
+        statusEl.style.color = "#ff9ff3";
+        statusEl.textContent = "Error saving.";
+    });
+}
+
+function toggleGelbooruApiKeyVisibility() {
+    let input = document.getElementById("gelbooruApiKeyInput");
     let btn = event.target;
     if (input.type === "password") {
         input.type = "text";

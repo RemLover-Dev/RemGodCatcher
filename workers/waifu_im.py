@@ -68,6 +68,7 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
             time.sleep(retry_wait)
             continue
 
+        page_downloaded = 0
         for img in items:
             if stop_event.is_set() or (amount > 0 and downloaded >= amount): break
             url = img.get("url")
@@ -90,6 +91,7 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
                     break
 
                 downloaded += 1
+                page_downloaded += 1
                 dl_history.add(filename)
                 save_history(site_root, dl_history)
 
@@ -97,7 +99,7 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
             except Exception as e:
                 log_msg(name, f"[FAILED] {filename}: {e}")
 
-        if not stop_event.is_set() and (amount == 0 or downloaded < amount):
+        if page_downloaded > 0 and not stop_event.is_set() and (amount == 0 or downloaded < amount):
             time.sleep(anti_ban_pause)
 
     log_msg(name, "--- Worker Terminated ---")

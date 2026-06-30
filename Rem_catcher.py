@@ -19,6 +19,8 @@ from workers.safebooru import worker_safebooru
 from workers.zerochan import worker_zerochan
 from workers.waifu_im import worker_waifu
 from workers.nekos_best import worker_nekos_best
+from workers.nekos_life import worker_nekos_life
+from workers.gelbooru import worker_gelbooru
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 load_dotenv(os.path.join(shared.BASE_DIR, ".env"))
@@ -141,26 +143,38 @@ def api_settings_manager():
         data = request.json
         api_key = data.get("rule34_api_key", "")
         user_id = data.get("rule34_user_id", "")
+        gel_api_key = data.get("gelbooru_api_key", "")
+        gel_user_id = data.get("gelbooru_user_id", "")
         
         lines = []
         if os.path.exists(env_path):
             with open(env_path, "r", encoding="utf-8") as f: lines = f.readlines()
         
+        env_keys = {
+            "RULE34_API_KEY": api_key,
+            "RULE34_USER_ID": user_id,
+            "GELBOORU_API_KEY": gel_api_key,
+            "GELBOORU_USER_ID": gel_user_id,
+        }
         new_lines = []
-        found_api, found_uid = False, False
+        found = {k: False for k in env_keys}
         for line in lines:
-            if line.strip().startswith("RULE34_API_KEY="):
-                new_lines.append(f"RULE34_API_KEY={api_key}\n"); found_api = True
-            elif line.strip().startswith("RULE34_USER_ID="):
-                new_lines.append(f"RULE34_USER_ID={user_id}\n"); found_uid = True
-            else: new_lines.append(line)
-            
-        if not found_api: new_lines.append(f"RULE34_API_KEY={api_key}\n")
-        if not found_uid: new_lines.append(f"RULE34_USER_ID={user_id}\n")
+            matched = False
+            for key in env_keys:
+                if line.strip().startswith(f"{key}="):
+                    new_lines.append(f"{key}={env_keys[key]}\n")
+                    found[key] = True
+                    matched = True
+                    break
+            if not matched:
+                new_lines.append(line)
+        for key, val in env_keys.items():
+            if not found[key]:
+                new_lines.append(f"{key}={val}\n")
         
         with open(env_path, "w", encoding="utf-8") as f: f.writelines(new_lines)
-        os.environ["RULE34_API_KEY"] = api_key
-        os.environ["RULE34_USER_ID"] = user_id
+        for key, val in env_keys.items():
+            os.environ[key] = val
         return jsonify({"success": True, "message": "API settings saved successfully!"})
         
     config = {}
@@ -170,7 +184,12 @@ def api_settings_manager():
                 if "=" in line and not line.startswith("#"):
                     k, v = line.split("=", 1)
                     config[k.strip()] = v.strip()
-    return jsonify({"rule34_api_key": config.get("RULE34_API_KEY", ""), "rule34_user_id": config.get("RULE34_USER_ID", "")})
+    return jsonify({
+        "rule34_api_key": config.get("RULE34_API_KEY", ""),
+        "rule34_user_id": config.get("RULE34_USER_ID", ""),
+        "gelbooru_api_key": config.get("GELBOORU_API_KEY", ""),
+        "gelbooru_user_id": config.get("GELBOORU_USER_ID", ""),
+    })
 
 # ==========================================
 # === 🛠️ FIXED TAG AUTO-SUGGESTION API 🛠️ ===
@@ -224,6 +243,22 @@ def get_safe_suggestions_route():
     query = data.get("query", "").lower()
     if not shared.SAFE_TAGS_DB: return jsonify([])
     return jsonify([t for t in shared.SAFE_TAGS_DB if t.startswith(query)][:50])
+
+@app.route("/api/tags/gelbooru", methods=["POST"])
+def get_gelbooru_suggestions_route():
+    data = request.json
+    query = data.get("query", "")
+    net_config = data.get("net_config", {})
+    if len(query) < 2: return jsonify([])
+    try:
+        session = shared.get_session("gelbooru", net_config)
+        url = f"https://gelbooru.com/index.php?page=autocomplete2&term={urllib.parse.quote(query)}&type=tag_query&limit=20"
+        resp = session.get(url, timeout=5)
+        if resp.status_code == 200:
+            d = resp.json()
+            return jsonify([item.get("value") for item in d if isinstance(item, dict) and "value" in item])
+    except Exception: pass
+    return jsonify([])
 
 @app.route("/api/tags/rule34", methods=["POST"])
 def get_rule34_suggestions_route():
@@ -282,6 +317,15 @@ def handle_start_worker(data):
         category = data.get("category", "")
         limit = int(data.get("limit", 20))
         threading.Thread(target=worker_nekos_best, args=(category, limit, net_config), daemon=True).start()
+    elif worker == "nekos_life":
+        category = data.get("category", "")
+        limit = int(data.get("limit", 20))
+        threading.Thread(target=worker_nekos_life, args=(category, limit, net_config), daemon=True).start()
+    elif worker == "gelbooru":
+        tag = data.get("tag", "")
+        limit = int(data.get("limit", 50))
+        exclusions = data.get("exclusions", [])
+        threading.Thread(target=worker_gelbooru, args=(tag, limit, exclusions, net_config), daemon=True).start()
 
 @socketio.on("stop_worker")
 def handle_stop_worker(data):

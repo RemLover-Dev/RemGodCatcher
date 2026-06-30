@@ -16,9 +16,11 @@
         <div class="tab-buttons">
             <button class="tab-btn active" onclick="openTab('Main', 'Rem_main.png', this)">MAIN</button>
             <button class="tab-btn" onclick="openTab('Neko', 'Rem_neko.jpg', this)">Nekos.best</button>
+            <button class="tab-btn" onclick="openTab('NekosLife', 'Rem_neko.jpg', this)">Nekos.life</button>
             <button class="tab-btn" onclick="openTab('Zero', 'Rem_zero.jpg', this)">Zerochan</button>
             <button class="tab-btn" onclick="openTab('Waifu', 'Rem_waifu.png', this)">Waifu.im</button>
             <button class="tab-btn" onclick="openTab('Safe', 'Rem_safe.jpg', this)">Safebooru</button>
+            <button class="tab-btn" onclick="openTab('Gelbooru', 'Rem_safe.jpg', this)">Gelbooru</button>
             <button class="tab-btn" onclick="openTab('Rule34', 'Rem_rule34.jpg', this)" style="color: #ff9ff3;">Rule34</button>
             <button class="tab-btn" onclick="openTab('ApiSettings', 'Rem_main.png', this)" style="color: #00d2d3;">Options</button>
         </div>
@@ -111,6 +113,57 @@
                 </div>
             </div>
 
+            <!-- NEKOS.LIFE TAB -->
+            <div id="NekosLife" class="tab-content" style="display: none;">
+                <h2>Nekos.life Downloader</h2>
+                <div class="input-group">
+                    <label>Category:</label>
+                    <input type="text" id="nekosLifeCat" list="nekosLifeList" placeholder="e.g. hug">
+                    <datalist id="nekosLifeList">
+                        <option value="hug">
+                        <option value="kiss">
+                        <option value="pat">
+                        <option value="cuddle">
+                        <option value="tickle">
+                        <option value="slap">
+                        <option value="poke">
+                        <option value="feed">
+                        <option value="smug">
+                        <option value="baka">
+                        <option value="spank">
+                        <option value="lewd">
+                        <option value="gasm">
+                        <option value="neko">
+                        <option value="ngif">
+                        <option value="waifu">
+                        <option value="avatar">
+                        <option value="fox_girl">
+                        <option value="kemonomimi">
+                        <option value="holo">
+                        <option value="woof">
+                        <option value="meow">
+                        <option value="lizard">
+                        <option value="gecg">
+                        <option value="goose">
+                        <option value="wallpaper">
+                        <option value="8ball">
+                        <option value="v3">
+                    </datalist>
+                    <label>Amount:</label>
+                    <input type="number" id="nekosLifeAmount" value="20" style="width: 80px;">
+                    <button class="action-btn" onclick="startWorker('nekos_life')">START</button>
+                    <button class="action-btn stop-btn" onclick="stopWorker('nekos_life')">STOP</button>
+                </div>
+                <div class="input-group" style="margin-top: 10px; font-size: 14px; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+                    <label style="color: #ff9ff3; text-shadow: none; font-weight: bold; margin-right: 10px;">Filter:</label>
+                    <input type="checkbox" id="nekosLifeExGif"> <label for="nekosLifeExGif" style="text-shadow: none; margin-right: 10px;">Exclude GIFs</label>
+                    <input type="checkbox" id="nekosLifeExImg"> <label for="nekosLifeExImg" style="text-shadow: none;">Exclude Images</label>
+                </div>
+                <div class="console-wrapper">
+                    <pre id="consoleLog_nekos_life"></pre>
+                </div>
+            </div>
+
             <!-- SAFEBOORU TAB -->
             <div id="Safe" class="tab-content" style="display: none;">
                 <h2>Safebooru Downloader</h2>
@@ -125,6 +178,28 @@
                 </div>
                 <div class="console-wrapper">
                     <pre id="consoleLog_safe"></pre>
+                </div>
+            </div>
+
+            <!-- GELBOORU TAB -->
+            <div id="Gelbooru" class="tab-content" style="display: none;">
+                <h2>Gelbooru Downloader</h2>
+                <div class="input-group">
+                    <label>Tags:</label>
+                    <input type="text" id="gelbooruTag" list="gelbooruList" oninput="fetchGelbooru(this.value)" placeholder="e.g. rem blue_hair" style="width: 320px;">
+                    <datalist id="gelbooruList"></datalist>
+                    <label>Limit:</label>
+                    <input type="number" id="gelbooruLimit" value="50" style="width: 80px;">
+                    <button class="action-btn" onclick="startWorker('gelbooru')">START</button>
+                    <button class="action-btn stop-btn" onclick="stopWorker('gelbooru')">STOP</button>
+                </div>
+                <div class="input-group" style="margin-top: 10px; font-size: 14px; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+                    <label style="color: #ff9ff3; text-shadow: none; font-weight: bold; margin-right: 10px;">Exclude:</label>
+                    <input type="checkbox" id="gelbooruExVideo" checked> <label for="gelbooruExVideo" style="text-shadow: none; margin-right: 10px;">Video</label>
+                    <input type="checkbox" id="gelbooruExGif"> <label for="gelbooruExGif" style="text-shadow: none;">GIF</label>
+                </div>
+                <div class="console-wrapper">
+                    <pre id="consoleLog_gelbooru"></pre>
                 </div>
             </div>
 
@@ -217,7 +292,7 @@
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <label style="min-width: 120px; font-size: 13px;">Anti-Ban Pause:</label>
-                            <input type="number" id="antiBanPause" value="3" step="0.5" style="width: 70px;">
+                            <input type="number" id="antiBanPause" value="3" step="0.5" min="0" style="width: 70px;">
                             <span style="font-size: 12px; color: gray;">sec</span>
                         </div>
                     </div>
@@ -226,7 +301,26 @@
                         <span id="dlSettingsStatus" style="margin-left: 10px; font-size: 12px; color: gray;"></span>
                     </div>
                 </div>
-                
+
+                <div style="margin-top: 25px; padding: 14px; background: rgba(0,0,0,0.4); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                    <p style="color: #feca57; font-size: 14px; font-weight: bold; margin-bottom: 12px;">Gelbooru API Credentials <span style="font-weight: normal; font-size: 12px; color: gray;">(Required for Gelbooru access)</span></p>
+                    <div class="input-group" style="flex-direction: column; align-items: flex-start; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                            <label style="min-width: 110px;">Gelbooru API Key:</label>
+                            <input type="password" id="gelbooruApiKeyInput" placeholder="Paste your Gelbooru API key here..." style="width: 480px;">
+                            <button class="action-btn" onclick="toggleGelbooruApiKeyVisibility()" style="padding: 8px 12px;">Show</button>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                            <label style="min-width: 110px;">Gelbooru User ID:</label>
+                            <input type="text" id="gelbooruUserIdInput" placeholder="e.g. 123456" style="width: 200px;">
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button class="action-btn" onclick="saveGelbooruApiSettings()">Save Gelbooru</button>
+                            <span id="gelbooruApiSaveStatus" style="font-size: 12px; color: gray;"></span>
+                        </div>
+                    </div>
+                </div>
+
                 <div style="margin-top: 25px; padding: 12px; background: rgba(0,0,0,0.4); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
                     <p style="color: #ff9ff3; font-size: 13px; font-weight: bold; margin-bottom: 8px;">How to get your Rule34 API Key:</p>
                     <ol style="color: gray; font-size: 12px; padding-left: 20px; line-height: 1.8;">

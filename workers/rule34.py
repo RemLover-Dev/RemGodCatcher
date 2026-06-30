@@ -77,6 +77,7 @@ def worker_rule34(tag, amount, method, sort_type, sort_order, exclusions, net_co
             client.session.proxies = {"http": "", "https": "", "no_proxy": "*"}
             client.session.verify = False
 
+        anti_ban_pause = float(net_config.get("anti_ban_pause", 3.0))
         downloaded = 0
         page = 0
 
@@ -115,6 +116,8 @@ def worker_rule34(tag, amount, method, sort_type, sort_order, exclusions, net_co
                     log_msg(name, "End of database reached.")
                 break
 
+            page_downloaded = 0
+            skipped = 0
             for result in results:
                 if stop_event.is_set() or (amount > 0 and downloaded >= amount): break
                 file_url = result.image
@@ -129,7 +132,7 @@ def worker_rule34(tag, amount, method, sort_type, sort_order, exclusions, net_co
                 filepath = os.path.join(tag_dir, filename)
 
                 if filename in dl_history or os.path.exists(filepath):
-                    log_msg(name, f"[SKIP] {filename} (Already in history/disk)")
+                    skipped += 1
                     continue
 
                 try:
@@ -145,6 +148,7 @@ def worker_rule34(tag, amount, method, sort_type, sort_order, exclusions, net_co
                         break
 
                     downloaded += 1
+                    page_downloaded += 1
                     dl_history.add(filename)
                     save_history(site_root, dl_history)
 
@@ -153,11 +157,13 @@ def worker_rule34(tag, amount, method, sort_type, sort_order, exclusions, net_co
                 except Exception as e:
                     log_msg(name, f"[FAILED] {filename}: {e}")
 
+            if skipped:
+                log_msg(name, f"Skipped {skipped} images (already in history/disk)")
+
             page += 1
-            if not stop_event.is_set() and (amount == 0 or downloaded < amount):
-                delay = random.uniform(3.0, 5.0)
-                log_msg(name, f"Tactical pause... ({delay:.1f}s)")
-                time.sleep(delay)
+            if page_downloaded > 0 and not stop_event.is_set() and (amount == 0 or downloaded < amount):
+                log_msg(name, f"Anti-ban pause... ({anti_ban_pause:.1f}s)")
+                time.sleep(anti_ban_pause)
 
     except Exception as e:
         log_msg(name, f"Unexpected Error: {str(e)}")

@@ -18,22 +18,22 @@ def worker_safebooru(tag, amount, net_config):
     os.makedirs(site_root, exist_ok=True)
     dl_history = load_history(site_root)
     session = get_session("safe", net_config)
+    anti_ban_pause = float(net_config.get("anti_ban_pause", 3.0))
 
     safe_tag = re.sub(r'[\\/*?:"<>|]', "", tag).replace(' ', '_')
     tag_dir = os.path.join(site_root, safe_tag)
     os.makedirs(tag_dir, exist_ok=True)
 
-    downloaded = 0
+    limit = min(200, amount) if amount > 0 else 200
     page = 1
-    empty_pages = 0
-    max_empty = 3
-    
-    while not stop_event.is_set() and (amount == 0 or downloaded < amount):
-        try:
-            log_msg(name, f"Scanning API... (Page {page})")
-            limit_val = min(100, amount - downloaded if amount > 0 else 100)
+    pending = []
 
-            resp = session.get("https://safebooru.donmai.us/posts.json", params={"tags": tag, "page": page, "limit": limit_val}, timeout=15)
+    log_msg(name, "Phase 1: Scanning pages for new files...")
+
+    while not stop_event.is_set() and (amount == 0 or len(pending) < amount):
+        try:
+            log_msg(name, f"Scanning API... (Page {page}, collected {len(pending)} so far)")
+            resp = session.get("https://safebooru.donmai.us/posts.json", params={"tags": tag, "page": page, "limit": limit}, timeout=15)
             if resp.status_code in [403, 429]:
                 log_msg(name, f"ERROR {resp.status_code}. Change proxy.")
                 break
@@ -43,6 +43,8 @@ def worker_safebooru(tag, amount, net_config):
             if not text_resp or text_resp == "[]":
                 if page == 1:
                     log_msg(name, f"ZERO images found for '{tag}'.")
+                else:
+                    log_msg(name, "End of results reached.")
                 break
 
             raw_data = resp.json()
@@ -59,6 +61,39 @@ def worker_safebooru(tag, amount, net_config):
             if not posts:
                 break
 
+            found_on_page = 0
+            for post in posts:
+                if stop_event.is_set() or (amount > 0 and len(pending) >= amount):
+                    break
+                if not isinstance(post, dict):
+                    continue
+
+                url = post.get("file_url") or post.get("large_file_url")
+                if not url:
+                    continue
+                if url.startswith("https://"):
+                    url = url.replace("https://", "http://")
+
+                ext = (post.get("file_ext") or "").lower()
+                if ext in ["mp4", "webm", "zip", "gif"]:
+                    continue
+
+                post_id = post.get("id")
+                if not post_id:
+                    continue
+
+                filename = f"{post_id}.{ext}"
+                filepath = os.path.join(tag_dir, filename)
+
+                if filename in dl_history or os.path.exists(filepath):
+                    continue
+
+                pending.append((url, filename, filepath))
+                found_on_page += 1
+
+            if found_on_page == 0 and posts:
+                log_msg(name, f"No new files on page {page} (all in history or filtered).")
+
         except Exception as e:
             err_str = str(e)
             if "403" in err_str:
@@ -68,56 +103,48 @@ def worker_safebooru(tag, amount, net_config):
             time.sleep(5)
             continue
 
-        page_downloaded = 0
-        for post in posts:
-            if stop_event.is_set() or (amount > 0 and downloaded >= amount): break
-            if not isinstance(post, dict): continue
-
-            url = post.get("file_url") or post.get("large_file_url")
-            if not url: continue
-            if url.startswith("https://"): url = url.replace("https://", "http://")
-
-            ext = (post.get("file_ext") or "").lower()
-            if ext in ["mp4", "webm", "zip", "gif"]: continue
-
-            filename = f"{post.get('id')}.{ext}"
-            filepath = os.path.join(tag_dir, filename)
-
-            if filename in dl_history or os.path.exists(filepath): continue
-
-            try:
-                r = session.get(url, stream=True, timeout=20)
-                r.raise_for_status()
-                with open(filepath, 'wb') as f:
-                    for chunk in r.iter_content(8192):
-                        if stop_event.is_set(): break
-                        f.write(chunk)
-                if stop_event.is_set():
-                    os.remove(filepath)
-                    break
-
-                downloaded += 1
-                page_downloaded += 1
-                dl_history.add(filename)
-                save_history(site_root, dl_history)
-
-                log_msg(name, f"[SUCCESS] Downloaded {filename} ({downloaded}/{amount})")
-                time.sleep(random.uniform(0.5, 2.0))
-            except Exception as e:
-                log_msg(name, f"[FAILED] {filename}: {e}")
-
-        if page_downloaded == 0:
-            empty_pages += 1
-            if empty_pages >= max_empty:
-                log_msg(name, f"No downloadable images found after {empty_pages} pages. Stopping.")
-                break
-        else:
-            empty_pages = 0
-
         page += 1
-        if not stop_event.is_set() and (amount == 0 or downloaded < amount):
-            delay = random.uniform(3.0, 5.0)
-            log_msg(name, f"Anti-ban pause... ({delay:.1f}s)")
-            time.sleep(delay)
+        if not stop_event.is_set() and (amount == 0 or len(pending) < amount):
+            time.sleep(anti_ban_pause)
+
+    if stop_event.is_set() or not pending:
+        if not pending:
+            log_msg(name, "No new files to download.")
+        log_msg(name, "--- Worker Terminated ---")
+        return
+
+    if amount > 0:
+        pending = pending[:amount]
+
+    log_msg(name, f"Phase 2: Downloading {len(pending)} files...")
+
+    downloaded = 0
+    for url, filename, filepath in pending:
+        if stop_event.is_set() or (amount > 0 and downloaded >= amount):
+            break
+
+        if filename in dl_history or os.path.exists(filepath):
+            continue
+
+        try:
+            r = session.get(url, stream=True, timeout=20)
+            r.raise_for_status()
+            with open(filepath, 'wb') as f:
+                for chunk in r.iter_content(8192):
+                    if stop_event.is_set():
+                        break
+                    f.write(chunk)
+            if stop_event.is_set():
+                os.remove(filepath)
+                break
+
+            downloaded += 1
+            dl_history.add(filename)
+            save_history(site_root, dl_history)
+
+            log_msg(name, f"[SUCCESS] Downloaded {filename} ({downloaded}/{len(pending)})")
+            time.sleep(random.uniform(0.5, 2.0))
+        except Exception as e:
+            log_msg(name, f"[FAILED] {filename}: {e}")
 
     log_msg(name, "--- Worker Terminated ---")

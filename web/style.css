@@ -41,8 +41,12 @@ body {
     gap: 12px;
 }
 
-h2, label, span, button {
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+h2 {
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+    letter-spacing: 0.3px;
+}
+
+label, span {
     letter-spacing: 0.3px;
 }
 
@@ -72,6 +76,12 @@ h2 {
     cursor: pointer;
     border-radius: 6px;
     transition: all 0.25s ease;
+    outline: none;
+}
+
+.tab-btn:focus-visible {
+    outline: 2px solid rgba(0, 210, 211, 0.5);
+    outline-offset: 2px;
 }
 
 .tab-btn:hover {

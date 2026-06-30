@@ -19,6 +19,7 @@ def worker_nekos_best(category, amount, net_config):
     cat_dir = os.path.join(site_root, category)
     os.makedirs(cat_dir, exist_ok=True)
     session = get_session("neko", net_config)
+    anti_ban_pause = float(net_config.get("anti_ban_pause", 3.0))
 
     downloaded = 0
     while not stop_event.is_set() and (amount == 0 or downloaded < amount):
@@ -40,6 +41,7 @@ def worker_nekos_best(category, amount, net_config):
             time.sleep(5)
             continue
 
+        page_downloaded = 0
         for item in results:
             if stop_event.is_set() or (amount > 0 and downloaded >= amount): break
             url = item.get("url")
@@ -62,6 +64,7 @@ def worker_nekos_best(category, amount, net_config):
                     break
 
                 downloaded += 1
+                page_downloaded += 1
                 dl_history.add(filename)
                 save_history(site_root, dl_history)
 
@@ -70,9 +73,8 @@ def worker_nekos_best(category, amount, net_config):
             except Exception as e:
                 log_msg(name, f"[FAILED] {filename}: {e}")
 
-        if not stop_event.is_set() and (amount == 0 or downloaded < amount):
-            delay = random.uniform(3.5, 6.5)
-            log_msg(name, f"Tactical pause... ({delay:.1f}s)")
-            time.sleep(delay)
+        if page_downloaded > 0 and not stop_event.is_set() and (amount == 0 or downloaded < amount):
+            log_msg(name, f"Anti-ban pause... ({anti_ban_pause:.1f}s)")
+            time.sleep(anti_ban_pause)
 
     log_msg(name, "--- Worker Terminated ---")

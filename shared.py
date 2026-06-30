@@ -67,4 +67,6 @@ def get_session(site, net_config):
         session.mount("http://", adapter)
     elif site in ["waifu", "neko"]:
         session.headers.update({"Accept": "application/json"})
+    elif site == "gelbooru":
+        session.headers.update({"User-Agent": "RemGodCatcher/2.0", "Accept": "application/json"})
     return session
