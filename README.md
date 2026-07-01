@@ -41,7 +41,7 @@ Supports Rule34, Safebooru, Zerochan, Waifu.im, and Nekos.best with real-time lo
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YourUsername/Rem-God-Catcher.git
+git clone https://github.com/RemLover-Dev/Rem-God-Catcher.git
 cd Rem-God-Catcher
 ```
 
