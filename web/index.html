@@ -175,32 +175,45 @@
                 <h2>Nekos.life Downloader</h2>
                 <div class="input-group">
                     <label>Category:</label>
-                    <select id="nekosLifeCat" style="width: 150px;">
-                        <option value="smug">smug</option>
-                        <option value="baka">baka</option>
-                        <option value="tickle">tickle</option>
-                        <option value="slap">slap</option>
-                        <option value="poke">poke</option>
-                        <option value="pat">pat</option>
-                        <option value="neko">neko</option>
-                        <option value="ngif">nekoGif</option>
-                        <option value="meow">meow</option>
-                        <option value="lizard">lizard</option>
-                        <option value="kiss">kiss</option>
-                        <option value="hug">hug</option>
-                        <option value="fox_girl">foxGirl</option>
-                        <option value="feed">feed</option>
-                        <option value="cuddle">cuddle</option>
-                        <option value="kemonomimi">kemonomimi</option>
-                        <option value="holo">holo</option>
-                        <option value="woof">woof</option>
-                        <option value="wallpaper">wallpaper</option>
-                        <option value="goose">goose</option>
-                        <option value="gecg">gecg</option>
-                        <option value="avatar">avatar</option>
-                        <option value="waifu">waifu</option>
+                    <select id="nekosLifeCat" style="width: 150px;" onchange="updateNekosLifeType()">
+                        <optgroup label="GIF Only">
+                            <option value="ngif">nekoGif</option>
+                            <option value="hug">hug</option>
+                            <option value="pat">pat</option>
+                            <option value="cuddle">cuddle</option>
+                            <option value="tickle">tickle</option>
+                            <option value="feed">feed</option>
+                            <option value="slap">slap</option>
+                            <option value="kiss">kiss</option>
+                            <option value="smug">smug</option>
+                        </optgroup>
+                        <optgroup label="Static Only">
+                            <option value="gecg">gecg</option>
+                            <option value="meow">meow</option>
+                            <option value="neko">neko</option>
+                            <option value="lewd">lewd</option>
+                            <option value="gasm">gasm</option>
+                            <option value="8ball">8ball</option>
+                            <option value="avatar">avatar</option>
+                            <option value="woof">woof</option>
+                            <option value="fox_girl">foxGirl</option>
+                            <option value="waifu">waifu</option>
+                        </optgroup>
+                        <optgroup label="Mixed (GIF/Static)">
+                            <option value="goose">goose</option>
+                            <option value="wallpaper">wallpaper</option>
+                            <option value="lizard">lizard</option>
+                            <option value="span">span</option>
+                        </optgroup>
+                        <optgroup label="Other">
+                            <option value="baka">baka</option>
+                            <option value="poke">poke</option>
+                            <option value="kemonomimi">kemonomimi</option>
+                            <option value="holo">holo</option>
+                        </optgroup>
                     </select>
-                    <label>Amount:</label>
+                    <span id="nekosLifeType" style="color: #00d2d3; font-size: 12px; font-weight: bold; margin-left: 5px;"></span>
+                    <label style="margin-left: 10px;">Amount:</label>
                     <input type="number" id="nekosLifeAmount" value="20" style="width: 80px;">
                     <button class="action-btn" onclick="startWorker('nekos_life')">START</button>
                     <button class="action-btn stop-btn" onclick="stopWorker('nekos_life')">STOP</button>
@@ -261,8 +274,6 @@
                         <option value="all">Images & Videos</option>
                         <option value="videos">Videos Only</option>
                     </select>
-                    <label style="color: #ff9ff3; font-weight: bold; margin-right: 10px;">Exclude:</label>
-                    <input type="checkbox" id="safeExGif"> <label for="safeExGif" style="margin-right: 10px;">GIF</label>
                 </div>
                 <div class="console-wrapper">
                     <pre id="consoleLog_safe"></pre>
@@ -287,8 +298,6 @@
                         <option value="all">Images & Videos</option>
                         <option value="videos">Videos Only</option>
                     </select>
-                    <label style="color: #ff9ff3; font-weight: bold; margin-right: 10px;">Exclude:</label>
-                    <input type="checkbox" id="gelExGif"> <label for="gelExGif" style="margin-right: 10px;">GIF</label>
                 </div>
                 <div class="console-wrapper">
                     <pre id="consoleLog_gelbooru"></pre>
@@ -326,8 +335,9 @@
                 </div>
                 <div class="input-group" style="margin-top: 10px; font-size: 14px; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px;">
                     <label style="color: #ff9ff3; font-weight: bold; margin-right: 10px;">Format:</label>
-                    <select id="rule34Format" style="margin-right: 15px;">
+                    <select id="rule34Format" style="margin-right: 15px;" onchange="toggleGifExclusion('rule34Format', 'exGif')">
                         <option value="images">Images Only</option>
+                        <option value="gifs">GIFs Only</option>
                         <option value="all">Images & Videos</option>
                         <option value="videos">Videos Only</option>
                     </select>

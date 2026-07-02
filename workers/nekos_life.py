@@ -7,13 +7,21 @@ from shared import log_msg, STOP_EVENTS, MASTER_FOLDER, load_history, save_histo
 
 GIF_ONLY = {"ngif", "hug", "pat", "cuddle", "tickle", "feed", "slap", "kiss", "smug"}
 STATIC_ONLY = {"gecg", "meow", "neko", "lewd", "gasm", "8ball", "avatar", "woof", "fox_girl", "waifu"}
+MIXED = {"goose", "wallpaper", "lizard", "span"}
 
 def worker_nekos_life(category, amount, net_config):
     name = "nekos_life"
     STOP_EVENTS[name] = threading.Event()
     stop_event = STOP_EVENTS[name]
 
-    log_msg(name, f"Initializing worker for category: '{category}'")
+    if category in GIF_ONLY:
+        log_msg(name, f"Initializing worker for category: '{category}' [GIF ONLY]")
+    elif category in STATIC_ONLY:
+        log_msg(name, f"Initializing worker for category: '{category}' [STATIC ONLY]")
+    elif category in MIXED:
+        log_msg(name, f"Initializing worker for category: '{category}' [MIXED - GIF/Static]")
+    else:
+        log_msg(name, f"Initializing worker for category: '{category}' [UNKNOWN TYPE]")
 
     site_root = os.path.join(MASTER_FOLDER, "Nekos.life")
     os.makedirs(site_root, exist_ok=True)

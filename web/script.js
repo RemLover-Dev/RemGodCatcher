@@ -49,6 +49,7 @@ window.onload = async function () {
 
     // Initialize Nekos.best dropdown
     updateNekoDropdown();
+    updateNekosLifeType();
 
     try {
         let resp = await fetch("/api/tags/waifu", {
@@ -83,6 +84,41 @@ function updateNekoDropdown() {
         opt.textContent = t;
         sel.appendChild(opt);
     });
+}
+
+function toggleGifExclusion(formatId, checkboxId) {
+    let format = document.getElementById(formatId).value;
+    let checkbox = document.getElementById(checkboxId);
+    let label = checkbox.nextElementSibling;
+    if (format === 'gifs') {
+        checkbox.style.display = 'none';
+        label.style.display = 'none';
+    } else {
+        checkbox.style.display = '';
+        label.style.display = '';
+    }
+}
+
+function updateNekosLifeType() {
+    const gifOnly = ["ngif", "hug", "pat", "cuddle", "tickle", "feed", "slap", "kiss", "smug"];
+    const staticOnly = ["gecg", "meow", "neko", "lewd", "gasm", "8ball", "avatar", "woof", "fox_girl", "waifu"];
+    const mixed = ["goose", "wallpaper", "lizard", "span"];
+    
+    let cat = document.getElementById("nekosLifeCat").value;
+    let typeEl = document.getElementById("nekosLifeType");
+    
+    if (gifOnly.includes(cat)) {
+        typeEl.textContent = "[GIF]";
+        typeEl.style.color = "#ff9ff3";
+    } else if (staticOnly.includes(cat)) {
+        typeEl.textContent = "[STATIC]";
+        typeEl.style.color = "#00d2d3";
+    } else if (mixed.includes(cat)) {
+        typeEl.textContent = "[MIXED]";
+        typeEl.style.color = "#ffd93d";
+    } else {
+        typeEl.textContent = "";
+    }
 }
 
 async function saveProxySettings() {
@@ -214,7 +250,10 @@ function logToConsole(tabID, msg) {
 }
 
 function startWorker(workerName) {
-    let payload = { worker: workerName, net_config: globalNetConfig };
+    let payload = { worker: workerName, net_config: { ...globalNetConfig } };
+    payload.net_config.api_timeout = document.getElementById("apiTimeout").value;
+    payload.net_config.retry_wait = document.getElementById("retryWait").value;
+    payload.net_config.anti_ban_pause = document.getElementById("antiBanPause").value;
     
     if (workerName === 'zero') {
         payload.tag = document.getElementById('zeroTag').value;
@@ -233,30 +272,26 @@ function startWorker(workerName) {
         payload.tag = document.getElementById('safeTag').value;
         payload.limit = document.getElementById('safeLimit').value;
         
-        // --- SAFEBOORU FORMAT LOGIC ---
         let format = document.getElementById('safeFormat').value;
         let ex = [];
         if (format === 'images') ex.push('-video');
         else if (format === 'videos') {
             ex.push('-image');
-            payload.tag += " video"; // تزریق هوشمند تگ ویدیو
+            payload.tag += " video";
         }
-        if (document.getElementById('safeExGif').checked) ex.push('-gif');
         payload.exclusions = ex;
 
     } else if (workerName === 'gelbooru') {
         payload.tag = document.getElementById('gelbooruTag').value;
         payload.limit = document.getElementById('gelbooruLimit').value;
         
-        // --- GELBOORU FORMAT LOGIC ---
         let format = document.getElementById('gelFormat').value;
         let ex = [];
         if (format === 'images') ex.push('-video');
         else if (format === 'videos') {
             ex.push('-image');
-            payload.tag += " video"; // تزریق هوشمند تگ ویدیو
+            payload.tag += " video";
         }
-        if (document.getElementById('gelExGif').checked) ex.push('-gif');
         payload.exclusions = ex;
 
     } else if (workerName === 'rule34') {
@@ -266,13 +301,16 @@ function startWorker(workerName) {
         payload.sort_type = document.getElementById('rule34SortType').value;
         payload.sort_order = document.getElementById('rule34SortOrder').value;
         
-        // --- RULE34 FORMAT LOGIC ---
         let format = document.getElementById('rule34Format').value;
         let ex = [];
         if (format === 'images') ex.push('-video');
+        else if (format === 'gifs') {
+            ex.push('-video');
+            ex.push('-image');
+        }
         else if (format === 'videos') {
             ex.push('-image');
-            payload.tag += " video"; // تزریق هوشمند تگ ویدیو
+            payload.tag += " video";
         }
         
         if (document.getElementById('exGif').checked) ex.push('-gif');
@@ -447,12 +485,14 @@ function renderFavorites() {
     }
 
     favoriteTags.forEach(item => {
-        // کلیک روی فیوریت باعث باز شدن سایت و پر شدن اتوماتیک تگ میشود!
         ui.innerHTML += `
-            <div onclick="jumpToSite('${item.site}', '${item.tag}')" style="cursor: pointer; background: rgba(0, 210, 211, 0.2); border: 1px solid #00d2d3; padding: 5px 10px; border-radius: 20px; font-size: 13px; display: flex; align-items: center; gap: 5px; transition: 0.2s;">
-                <span>❄️</span>
-                <span style="color: #00d2d3; font-weight: bold; font-size: 10px; text-transform: uppercase;">[${item.site}]</span>
-                <span>${item.tag}</span>
+            <div style="background: rgba(0, 210, 211, 0.2); border: 1px solid #00d2d3; padding: 5px 10px; border-radius: 20px; font-size: 13px; display: flex; align-items: center; gap: 5px; transition: 0.2s;">
+                <span onclick="jumpToSite('${item.site}', '${item.tag}')" style="cursor: pointer; display: flex; align-items: center; gap: 5px; flex: 1;">
+                    <span>❄️</span>
+                    <span style="color: #00d2d3; font-weight: bold; font-size: 10px; text-transform: uppercase;">[${item.site}]</span>
+                    <span>${item.tag}</span>
+                </span>
+                <button onclick="event.stopPropagation(); toggleFavorite('${item.site}', '${item.tag}')" style="background: transparent; border: none; color: #ff6b6b; cursor: pointer; font-size: 12px; padding: 0 0 0 5px; line-height: 1;">✕</button>
             </div>
         `;
     });
@@ -468,6 +508,7 @@ async function toggleFavorite(site, tag) {
     favoriteTags = data.favorites;
     renderHistory();
     renderFavorites();
+    renderImageHistory();
 }
 
 async function removeFromHistory(site, tag) {
@@ -487,16 +528,24 @@ async function clearHistory() {
 
 // تابع پرش از صفحه اصلی به تب سایت و پر کردن خودکار
 function jumpToSite(site, tag) {
-    let tabId = site === "rule34" ? "Rule34" : (site === "gelbooru" ? "Gelbooru" : "Safe");
-    let inputId = site === "rule34" ? "rule34Tag" : (site === "gelbooru" ? "gelbooruTag" : "safeTag");
-    
-    // باز کردن تب
-    let btn = Array.from(document.querySelectorAll('.tab-btn')).find(el => el.textContent.toLowerCase().includes(tabId.toLowerCase()));
-    if(btn) openTab(tabId, btn);
-    
-    // پر کردن اینپوت جستجو
-    let inputEl = document.getElementById(inputId);
-    if(inputEl) inputEl.value = tag;
+    let siteMap = {
+        "zero":      { tab: "Zero",     input: "zeroTag" },
+        "waifu":     { tab: "Waifu",    input: "waifuTag" },
+        "neko":      { tab: "Neko",     input: null },
+        "nekos_life":{ tab: "NekosLife", input: null },
+        "safe":      { tab: "Safe",     input: "safeTag" },
+        "gelbooru":  { tab: "Gelbooru", input: "gelbooruTag" },
+        "rule34":    { tab: "Rule34",    input: "rule34Tag" }
+    };
+    let mapping = siteMap[site] || { tab: "Safe", input: "safeTag" };
+
+    let btn = Array.from(document.querySelectorAll('.tab-btn')).find(el => el.textContent.toLowerCase().includes(mapping.tab.toLowerCase()));
+    if(btn) openTab(mapping.tab, btn);
+
+    if(mapping.input) {
+        let inputEl = document.getElementById(mapping.input);
+        if(inputEl) inputEl.value = tag;
+    }
 }
 
 function renderImageHistory() {
@@ -543,7 +592,7 @@ function renderImageHistory() {
 
 async function addFavoriteFromImage(site, tag) {
     if(isFavorite(site, tag)) return;
-    
+
     await fetch("/api/favorites", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ site: site, tag: tag, action: "add" })

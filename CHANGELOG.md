@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [3.1.0] - 2026-07-02
+
+### Added
+- **Nekos.life Category Type Indicators**: Categories are now visually grouped (GIF Only, Static Only, Mixed, Other) in the UI with a live type badge showing [GIF], [STATIC], or [MIXED] next to the dropdown.
+- **Rule34 GIFs Only Filter**: New "GIFs Only" option in the Rule34 format dropdown to exclusively search for animated GIFs.
+- **Favorite Item Remove Button**: Each favorite tag now has an "✕" button to quickly remove it without navigating to the site.
+- **Jump-To-Site for All Platforms**: `jumpToSite()` now supports Zerochan, Waifu.im, Neko, and Nekos.life in addition to the original three booru sites.
+- **Live Net Config Passing**: `startWorker()` now sends fresh values from the input fields for `api_timeout`, `retry_wait`, and `anti_ban_pause` instead of relying solely on the cached `globalNetConfig` object.
+
+### Changed
+- **Nekos.life Category Reorganization**: Dropdown options are now organized into `<optgroup>` sections for clearer browsing.
+- **Tab Button Visibility**: Tab text color brightened from `rgba(255,255,255,0.7)` to `rgba(255,255,255,0.9)` and hover state improved for better readability.
+- **Favorite Tags UI**: The entire favorite card is no longer a single click target — only the tag/site text area triggers the jump, preventing accidental navigation when trying to remove a favorite.
+
+### Removed
+- **GIF Exclude Checkboxes**: Removed the separate "Exclude GIF" checkboxes from Safebooru and Gelbooru tabs. GIF filtering is now handled exclusively through the Format dropdown selector.
+
+### Fixed
+- **Image History Refresh**: `renderImageHistory()` is now called after toggling favorites, ensuring the Image Archive UI stays in sync.
+
+---
+
 ## [3.0.0] - Rem 3: The Discovery & Archive Update - 2026-07-02
 
 ### Added
