@@ -4,12 +4,12 @@
 
 **A modern, cross-platform image & video downloader with a glass-morphism web UI.**
 
-Supports Rule34, Safebooru, Gelbooru, Zerochan, Waifu.im, Nekos.best, and Nekos.life with real-time logging, a built-in discovery engine, advanced tag filtering, and anti-ban protections.
+Supports Rule34, Safebooru, Gelbooru, Zerochan, Waifu.im, Nekos.best, Nekos.life, and Yande.re with real-time logging, a built-in discovery engine, advanced tag filtering, and anti-ban protections.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-yellow.svg)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-3.x-green.svg)](https://flask.palletsprojects.com)
-[![Version](https://img.shields.io/badge/Version-3.1.0-ff9ff3.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-3.2.0-ff9ff3.svg)](CHANGELOG.md)
 
 [English](README.md) | [فارسی](README_fa.md)
 
@@ -19,7 +19,7 @@ Supports Rule34, Safebooru, Gelbooru, Zerochan, Waifu.im, Nekos.best, and Nekos.
 
 ## Features
 
-- **Multi-Platform** -- Built-in modules for 7 imageboard APIs
+- **Multi-Platform** -- Built-in modules for 8 imageboard APIs
 - **Modern Web UI** -- Glass-morphism dark theme, opens in your default browser
 - **Discovery Engine & Archives** -- Live extraction of tags and artists from downloaded media, displayed in a dedicated Image Archive tab.
 - **Favorites & Search History** -- Add tags to your favorites list for one-click search automation, and maintain a log of your search history.
@@ -84,6 +84,7 @@ Rem God Catcher/
 ├── workers/                # API-specific download modules
 ├── tags.json               # Waifu.im tag database (name -> slug mapping)
 ├── safe_tag_names.json     # Safebooru offline tag database
+├── yande_tag_names.json    # Yande.re offline tag database
 ├── tag_history.json        # Search history database (git-ignored)
 ├── fav_tags.json           # User favorites database (git-ignored)
 ├── image_history.json      # Per-image tag archive (git-ignored)
@@ -114,6 +115,7 @@ Rem God Catcher/
 | **Waifu.im** | Name-to-slug conversion, NSFW toggle | Yes | Uses local `tags.json` for suggestions |
 | **Nekos.best** | Category-based (PNG / GIF) | No | Multiple format support |
 | **Nekos.life** | Category-based with type indicators (GIF/Static/Mixed) | Yes | Animated neko, hug, pat, cuddle, and more |
+| **Yande.re** | Full tag search, rating filter, artist extraction, local tag DB | Yes | Moebooru API, images only, sorts into Safe/Moderate/NSFW folders |
 
 ---
 

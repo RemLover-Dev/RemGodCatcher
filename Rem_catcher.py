@@ -36,9 +36,11 @@ from workers.waifu_im import worker_waifu
 from workers.nekos_best import worker_nekos_best
 from workers.gelbooru import worker_gelbooru
 from workers.nekos_life import worker_nekos_life
+from workers.yande import worker_yande
 
 STOP_EVENTS = {}
 SAFE_TAGS_DB = []
+YANDE_TAGS_DB = []
 WAIFU_TAGS_DB = []
 WAIFU_TAG_MAP = {}
 MASTER_FOLDER = os.path.join(os.getcwd(), "Rem God")
@@ -61,7 +63,9 @@ STARTUP_CONFIG = {
     "wp_gelbooru": os.getenv("WP_GELBOORU", "Rem_gelbooru.jpg"),
     "wp_nekos_life": os.getenv("WP_NEKOS_LIFE", "Rem_nekos_life.jpg"),
     "wp_options": os.getenv("WP_OPTIONS", "Rem_option.jpg"),
-    "wp_history": os.getenv("WP_HISTORY", "Rem_history.jpg")
+    "wp_history": os.getenv("WP_HISTORY", "Rem_history.jpg"),
+    "wp_yande": os.getenv("WP_YANDE", "Rem_yande.jpg"),
+    "download_retries": int(os.getenv("DOWNLOAD_RETRIES", "3"))
 }
 
 app = Flask(__name__, static_folder=STATIC_FOLDER)
@@ -133,6 +137,7 @@ def get_session(site, net_config):
         adapter = HTTPAdapter(max_retries=Retry(total=3, backoff_factor=2.0, status_forcelist=[429, 500, 502, 503, 504], allowed_methods=["GET"]))
         session.mount("https://", adapter); session.mount("http://", adapter)
     elif site in ["waifu", "neko"]: session.headers.update({"Accept": "application/json"})
+    elif site == "yande": session.headers.update({"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
     return session
 
 def load_safe_db():
@@ -142,6 +147,14 @@ def load_safe_db():
     if os.path.exists(db_path):
         try:
             with open(db_path, "r", encoding="utf-8") as f: SAFE_TAGS_DB = json.load(f)
+        except Exception: pass
+
+def load_yande_db():
+    global YANDE_TAGS_DB
+    db_path = os.path.join(BASE_DIR, "yande_tag_names.json")
+    if os.path.exists(db_path):
+        try:
+            with open(db_path, "r", encoding="utf-8") as f: YANDE_TAGS_DB = json.load(f)
         except Exception: pass
 
 @app.route("/")
@@ -193,6 +206,7 @@ def config_manager():
             "API_TIMEOUT": str(STARTUP_CONFIG['api_timeout']),
             "RETRY_WAIT": str(STARTUP_CONFIG['retry_wait']),
             "ANTI_BAN_PAUSE": str(STARTUP_CONFIG['anti_ban_pause']),
+            "DOWNLOAD_RETRIES": str(STARTUP_CONFIG['download_retries']),
             "WP_MAIN": STARTUP_CONFIG['wp_main'],
             "WP_NEKO": STARTUP_CONFIG['wp_neko'],
             "WP_ZERO": STARTUP_CONFIG['wp_zero'],
@@ -200,6 +214,7 @@ def config_manager():
             "WP_SAFE": STARTUP_CONFIG['wp_safe'],
             "WP_RULE34": STARTUP_CONFIG['wp_rule34'],
             "WP_GELBOORU": STARTUP_CONFIG['wp_gelbooru'],
+            "WP_YANDE": STARTUP_CONFIG['wp_yande'],
             "WP_NEKOS_LIFE": STARTUP_CONFIG['wp_nekos_life'],
             "WP_OPTIONS": STARTUP_CONFIG['wp_options'],
             "WP_HISTORY": STARTUP_CONFIG['wp_history']
@@ -329,6 +344,12 @@ def get_rule34_suggestions():
     except Exception: pass
     return jsonify([])
 
+@app.route("/api/tags/yande", methods=["POST"])
+def get_yande_suggestions():
+    query = request.json.get("query", "").lower()
+    if not YANDE_TAGS_DB: return jsonify([])
+    return jsonify([t for t in YANDE_TAGS_DB if t.startswith(query)][:50])
+
 # --- TAG HISTORY & FAVORITES API ---
 TAG_HISTORY_FILE = os.path.join(BASE_DIR, "tag_history.json")
 FAV_TAGS_FILE = os.path.join(BASE_DIR, "fav_tags.json")
@@ -416,6 +437,7 @@ def handle_start_worker(data):
     elif worker == "rule34": threading.Thread(target=worker_rule34, args=(data.get("tag", ""), int(data.get("limit", 50)), data.get("method", "and"), data.get("sort_type", "id"), data.get("sort_order", "desc"), data.get("exclusions", []), net_config), daemon=True).start()
     elif worker == "gelbooru": threading.Thread(target=worker_gelbooru, args=(data.get("tag", ""), int(data.get("limit", 50)), data.get("exclusions", []), net_config), daemon=True).start()
     elif worker == "nekos_life": threading.Thread(target=worker_nekos_life, args=(data.get("category", ""), int(data.get("limit", 20)), net_config), daemon=True).start()
+    elif worker == "yande": threading.Thread(target=worker_yande, args=(data.get("tag", ""), int(data.get("limit", 50)), data.get("rating", ""), net_config), daemon=True).start()
 
 @socketio.on("stop_worker")
 def handle_stop_worker(data):
@@ -426,6 +448,7 @@ def handle_stop_worker(data):
 if __name__ == "__main__":
     load_safe_db()
     load_waifu_tags()
+    load_yande_db()
     port = 5000
     url = f"http://127.0.0.1:{port}"
     print(f"Starting Rem God Catcher Web UI on {url} ...")

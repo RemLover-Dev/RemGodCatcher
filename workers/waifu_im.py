@@ -21,6 +21,7 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
     api_timeout = int(net_config.get("api_timeout", 10))
     retry_wait = int(net_config.get("retry_wait", 5))
     anti_ban_pause = float(net_config.get("anti_ban_pause", 3.0))
+    dl_retries = int(net_config.get("download_retries", 3))
 
     tag = tag.lower()
     slug = waifu_name_to_slug(tag)
@@ -78,24 +79,34 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
 
             if filename in dl_history or os.path.exists(filepath): continue
 
-            try:
-                r = session.get(url, stream=True, timeout=api_timeout)
-                r.raise_for_status()
-                with open(filepath, 'wb') as f:
-                    for chunk in r.iter_content(8192):
-                        if stop_event.is_set(): break
-                        f.write(chunk)
-                if stop_event.is_set():
-                    os.remove(filepath)
+            success = False
+            for dl_attempt in range(dl_retries):
+                try:
+                    r = session.get(url, stream=True, timeout=api_timeout)
+                    r.raise_for_status()
+                    with open(filepath, 'wb') as f:
+                        for chunk in r.iter_content(8192):
+                            if stop_event.is_set(): break
+                            f.write(chunk)
+                    if stop_event.is_set():
+                        os.remove(filepath)
+                        break
+
+                    downloaded += 1
+                    dl_history.add(filename)
+                    save_history(site_root, dl_history)
+
+                    log_msg(name, f"[SUCCESS] Downloaded {filename} ({downloaded}/{amount})")
+                    success = True
                     break
-
-                downloaded += 1
-                dl_history.add(filename)
-                save_history(site_root, dl_history)
-
-                log_msg(name, f"[SUCCESS] Downloaded {filename} ({downloaded}/{amount})")
-            except Exception as e:
-                log_msg(name, f"[FAILED] {filename}: {e}")
+                except Exception as e:
+                    if dl_attempt < 2:
+                        log_msg(name, f"[RETRY {dl_attempt+1}/{dl_retries}] {filename}: {e}")
+                        time.sleep(2)
+                    else:
+                        log_msg(name, f"[FAILED] {filename}: {e}")
+            if not success:
+                continue
 
         if not stop_event.is_set() and (amount == 0 or downloaded < amount):
             time.sleep(anti_ban_pause)

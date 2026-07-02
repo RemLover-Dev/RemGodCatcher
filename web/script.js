@@ -2,7 +2,7 @@ let globalNetConfig = { "proxy_url": "", "use_proxy": false, "verify_tls": false
 let globalWallpapers = {
     "Main": "Rem_main.png", "Neko": "Rem_neko.jpg", "Zero": "Rem_zero.jpg",
     "Waifu": "Rem_waifu.png", "Safe": "Rem_safe.jpg", "Rule34": "Rem_rule34.jpg",
-    "Gelbooru": "Rem_gelbooru.jpg", "NekosLife": "Rem_nekos_life.jpg", "ApiSettings": "Rem_option.jpg",
+    "Gelbooru": "Rem_gelbooru.jpg", "NekosLife": "Rem_nekos_life.jpg", "Yande": "Rem_yande.jpg", "ApiSettings": "Rem_option.jpg",
     "History": "Rem_history.jpg"
 };
 
@@ -27,6 +27,7 @@ window.onload = async function () {
             document.getElementById("apiTimeout").value = config.api_timeout || 10;
             document.getElementById("retryWait").value = config.retry_wait || 5;
             document.getElementById("antiBanPause").value = config.anti_ban_pause || 3;
+            document.getElementById("downloadRetries").value = config.download_retries || 3;
 
             Object.keys(globalWallpapers).forEach(key => {
                 let confKey = key === "ApiSettings" ? "wp_options" : 
@@ -165,6 +166,7 @@ async function saveWallpapers() {
         "wp_waifu": document.getElementById("wp_waifu").value.trim(),
         "wp_safe": document.getElementById("wp_safe").value.trim(),
         "wp_rule34": document.getElementById("wp_rule34").value.trim(),
+        "wp_yande": document.getElementById("wp_yande").value.trim(),
         "wp_gelbooru": document.getElementById("wp_gelbooru").value.trim(),
         "wp_options": document.getElementById("wp_options").value.trim(),
         "wp_history": document.getElementById("wp_history").value.trim()
@@ -180,6 +182,7 @@ async function saveWallpapers() {
         globalWallpapers["Safe"] = wpConfig.wp_safe;
         globalWallpapers["Rule34"] = wpConfig.wp_rule34;
         globalWallpapers["Gelbooru"] = wpConfig.wp_gelbooru;
+        globalWallpapers["Yande"] = wpConfig.wp_yande;
         globalWallpapers["ApiSettings"] = wpConfig.wp_options;
         globalWallpapers["History"] = wpConfig.wp_history;
 
@@ -197,6 +200,7 @@ async function resetWallpapers() {
     document.getElementById('wp_safe').value = 'Rem_safe.jpg';
     document.getElementById('wp_rule34').value = 'Rem_rule34.jpg';
     document.getElementById('wp_gelbooru').value = 'Rem_gelbooru.jpg';
+    document.getElementById('wp_yande').value = 'Rem_yande.jpg';
     document.getElementById('wp_options').value = 'Rem_option.jpg';
     document.getElementById('wp_history').value = 'Rem_history.jpg';
     
@@ -238,7 +242,7 @@ function logToConsole(tabID, msg) {
     let boxMap = {
         "main": "consoleLog_main", "neko": "consoleLog_neko", "nekos_life": "consoleLog_nekos_life",
         "zero": "consoleLog_zero", "waifu": "consoleLog_waifu", "safe": "consoleLog_safe",
-        "rule34": "consoleLog_rule34", "gelbooru": "consoleLog_gelbooru"
+        "rule34": "consoleLog_rule34", "gelbooru": "consoleLog_gelbooru", "yande": "consoleLog_yande"
     };
     let cb = document.getElementById(boxMap[tabID.toLowerCase()] || "consoleLog_main");
     if (cb) {
@@ -293,6 +297,11 @@ function startWorker(workerName) {
             payload.tag += " video";
         }
         payload.exclusions = ex;
+
+    } else if (workerName === 'yande') {
+        payload.tag = document.getElementById('yandeTag').value;
+        payload.limit = document.getElementById('yandeLimit').value;
+        payload.rating = document.getElementById('yandeRating').value;
 
     } else if (workerName === 'rule34') {
         payload.tag = document.getElementById('rule34Tag').value;
@@ -356,6 +365,7 @@ async function saveDownloadSettings() {
     globalNetConfig.api_timeout = document.getElementById("apiTimeout").value;
     globalNetConfig.retry_wait = document.getElementById("retryWait").value;
     globalNetConfig.anti_ban_pause = document.getElementById("antiBanPause").value;
+    globalNetConfig.download_retries = document.getElementById("downloadRetries").value;
     await fetch("/api/config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(globalNetConfig) });
     document.getElementById("dlSettingsStatus").textContent = "Saved!";
     setTimeout(()=> document.getElementById("dlSettingsStatus").textContent = "", 2000);
@@ -397,6 +407,19 @@ async function fetchRule34(val) {
         let dl = document.getElementById("rule34List");
         let dHtml = "";
         tags.forEach(t => dHtml += `<option value="${t}">`);
+        dl.innerHTML = dHtml;
+    } catch(e) {}
+}
+
+async function fetchYande(val) {
+    if (val.length < 2) return;
+    let words = val.split(" "); let lastWord = words[words.length - 1]; if(lastWord.length < 2) return;
+    try {
+        let resp = await fetch("/api/tags/yande", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: lastWord }) });
+        let tags = await resp.json();
+        let dl = document.getElementById("yandeList");
+        let dHtml = "";
+        tags.forEach(t => dHtml += `<option value="${words.slice(0,-1).join(" ") + (words.length>1?" ":"") + t}">`);
         dl.innerHTML = dHtml;
     } catch(e) {}
 }
@@ -462,6 +485,7 @@ function renderHistory() {
                         <span style="font-size: 14px; color: white;">${item.tag}</span>
                     </div>
                     <div style="display: flex; gap: 8px;">
+                        <button class="action-btn" style="padding: 4px 8px; font-size: 12px; background: transparent; border: 1px solid rgba(255,255,255,0.2);" onclick="jumpToSite('${item.site}', '${item.tag}')">➡️</button>
                         <button class="action-btn" style="padding: 4px 8px; font-size: 12px; background: transparent; border: 1px solid rgba(255,255,255,0.2);" onclick="toggleFavorite('${item.site}', '${item.tag}')">${heartIcon}</button>
                         <button class="action-btn stop-btn" style="padding: 4px 8px; font-size: 12px;" onclick="removeFromHistory('${item.site}', '${item.tag}')">❌</button>
                     </div>
@@ -535,6 +559,7 @@ function jumpToSite(site, tag) {
         "nekos_life":{ tab: "NekosLife", input: null },
         "safe":      { tab: "Safe",     input: "safeTag" },
         "gelbooru":  { tab: "Gelbooru", input: "gelbooruTag" },
+        "yande":     { tab: "Yande",    input: "yandeTag" },
         "rule34":    { tab: "Rule34",    input: "rule34Tag" }
     };
     let mapping = siteMap[site] || { tab: "Safe", input: "safeTag" };

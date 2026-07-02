@@ -75,4 +75,6 @@ def get_session(site, net_config):
         session.mount("http://", adapter)
     elif site in ["waifu", "neko"]:
         session.headers.update({"Accept": "application/json"})
+    elif site == "yande":
+        session.headers.update({"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
     return session

@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [3.2.0] - 2026-07-02
+
+### Added
+- **Yande.re Platform** -- New worker for yande.re (Moebooru API) with tag autocomplete, rating-based folder sorting (Safe/Moderate/NSFW), and local tag database (135k+ tags).
+- **Download Retries Configuration** -- Retry count is now configurable in Options tab, saved to `.env` as `DOWNLOAD_RETRIES`.
+- **Anti-Spam Pause** -- After 10 consecutive pages with no new downloads, a 5-second anti-spam pause triggers instead of flying through silently.
+- **Rating Filter** -- Yande.re tab has a rating dropdown (All/Safe/Moderate/NSFW) that filters server-side and sorts into per-rating subfolders.
+- **History Jump Button** -- Each search history entry now has a ➡️ button to navigate directly to the site's tab with the tag filled in.
+
+### Changed
+- **All Workers** -- Failed downloads are now retried up to N times (configurable) without stopping the queue.
+- **Anti-Ban Pause** -- Pages with 0 new downloads skip the anti-ban pause, flying through already-downloaded content instantly.
+- **Empty Page Limit Removed** -- Workers no longer stop after 3 empty pages; they continue until the API returns nothing.
+- **Yande.re Anti-Ban** -- Uses the exact configured pause value (no random jitter).
+
+---
+
 ## [3.1.0] - 2026-07-02
 
 ### Added

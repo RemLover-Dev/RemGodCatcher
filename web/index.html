@@ -20,6 +20,7 @@
             <button class="tab-btn" onclick="openTab('Safe', this)">Safebooru</button>
             <button class="tab-btn" onclick="openTab('Gelbooru', this)">Gelbooru</button>
             <button class="tab-btn" onclick="openTab('Rule34', this)" style="color: #ff9ff3;">Rule34</button>
+            <button class="tab-btn" onclick="openTab('Yande', this)">Yande.re</button>
             <button class="tab-btn" onclick="openTab('History', this)">History</button>
             <button class="tab-btn" onclick="openTab('ApiSettings', this)" style="color: #00d2d3;">Options</button>
         </div>
@@ -113,6 +114,14 @@
                                     <input type="text" id="wp_gelbooru" style="width: 95px; font-size: 12px;" readonly>
                                     <button class="action-btn" style="padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('file_wp_gelbooru').click()">Browse</button>
                                     <input type="file" id="file_wp_gelbooru" accept="image/*" style="display: none" onchange="uploadWallpaper('wp_gelbooru', 'Gelbooru', this)">
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <label style="font-size: 12px;">Yande.re:</label>
+                                <div style="display: flex; gap: 5px;">
+                                    <input type="text" id="wp_yande" style="width: 95px; font-size: 12px;" readonly>
+                                    <button class="action-btn" style="padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('file_wp_yande').click()">Browse</button>
+                                    <input type="file" id="file_wp_yande" accept="image/*" style="display: none" onchange="uploadWallpaper('wp_yande', 'Yande', this)">
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -351,6 +360,28 @@
                 </div>
             </div>
 
+            <div id="Yande" class="tab-content" style="display: none;">
+                <h2>Yande.re Downloader</h2>
+                <div class="input-group">
+                    <label>Tags:</label>
+                    <input type="text" id="yandeTag" list="yandeList" oninput="fetchYande(this.value)" placeholder="e.g. rem blue_hair">
+                    <datalist id="yandeList"></datalist>
+                    <label>Limit:</label>
+                    <input type="number" id="yandeLimit" value="50" style="width: 80px;">
+                    <select id="yandeRating" style="width: 110px;">
+                        <option value="">All Ratings</option>
+                        <option value="rating:s">Safe</option>
+                        <option value="rating:q">Moderate</option>
+                        <option value="rating:e">NSFW</option>
+                    </select>
+                    <button class="action-btn" onclick="startWorker('yande')">START</button>
+                    <button class="action-btn stop-btn" onclick="stopWorker('yande')">STOP</button>
+                </div>
+                <div class="console-wrapper">
+                    <pre id="consoleLog_yande"></pre>
+                </div>
+            </div>
+
             <div id="History" class="tab-content" style="display: none;">
                 <div class="options-scroll">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -410,6 +441,10 @@
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <label style="min-width: 120px; font-size: 13px;">Anti-Ban Pause:</label>
                                 <input type="number" id="antiBanPause" value="3" step="0.5" style="width: 70px;">
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label style="min-width: 120px; font-size: 13px;">Download Retries:</label>
+                                <input type="number" id="downloadRetries" value="3" min="1" style="width: 70px;">
                             </div>
                         </div>
                         <div style="margin-top: 12px;">

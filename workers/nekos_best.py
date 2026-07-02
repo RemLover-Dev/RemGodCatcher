@@ -11,6 +11,7 @@ def worker_nekos_best(category, amount, net_config):
     stop_event = STOP_EVENTS[name]
 
     anti_ban_pause = float(net_config.get("anti_ban_pause", 3.0))
+    dl_retries = int(net_config.get("download_retries", 3))
     log_msg(name, f"Initializing worker for category: '{category}'")
 
     site_root = os.path.join(MASTER_FOLDER, "Nekos.best")
@@ -51,25 +52,35 @@ def worker_nekos_best(category, amount, net_config):
 
             if filename in dl_history or os.path.exists(filepath): continue
 
-            try:
-                r = session.get(url, stream=True, timeout=15)
-                r.raise_for_status()
-                with open(filepath, 'wb') as f:
-                    for chunk in r.iter_content(8192):
-                        if stop_event.is_set(): break
-                        f.write(chunk)
-                if stop_event.is_set():
-                    os.remove(filepath)
+            success = False
+            for dl_attempt in range(dl_retries):
+                try:
+                    r = session.get(url, stream=True, timeout=15)
+                    r.raise_for_status()
+                    with open(filepath, 'wb') as f:
+                        for chunk in r.iter_content(8192):
+                            if stop_event.is_set(): break
+                            f.write(chunk)
+                    if stop_event.is_set():
+                        os.remove(filepath)
+                        break
+
+                    downloaded += 1
+                    dl_history.add(filename)
+                    save_history(site_root, dl_history)
+
+                    log_msg(name, f"[SUCCESS] Downloaded {filename} ({downloaded}/{amount})")
+                    time.sleep(random.uniform(0.3, 1.2))
+                    success = True
                     break
-
-                downloaded += 1
-                dl_history.add(filename)
-                save_history(site_root, dl_history)
-
-                log_msg(name, f"[SUCCESS] Downloaded {filename} ({downloaded}/{amount})")
-                time.sleep(random.uniform(0.3, 1.2))
-            except Exception as e:
-                log_msg(name, f"[FAILED] {filename}: {e}")
+                except Exception as e:
+                    if dl_attempt < 2:
+                        log_msg(name, f"[RETRY {dl_attempt+1}/{dl_retries}] {filename}: {e}")
+                        time.sleep(2)
+                    else:
+                        log_msg(name, f"[FAILED] {filename}: {e}")
+            if not success:
+                continue
 
         if not stop_event.is_set() and (amount == 0 or downloaded < amount):
             delay = random.uniform(anti_ban_pause, anti_ban_pause + 3.0)
