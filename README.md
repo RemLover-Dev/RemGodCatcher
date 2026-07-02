@@ -4,12 +4,12 @@
 
 **A modern, cross-platform image & video downloader with a glass-morphism web UI.**
 
-Supports Rule34, Safebooru, Zerochan, Waifu.im, and Nekos.best with real-time logging, a built-in discovery engine, advanced tag filtering, and anti-ban protections.
+Supports Rule34, Safebooru, Gelbooru, Zerochan, Waifu.im, Nekos.best, and Nekos.life with real-time logging, a built-in discovery engine, advanced tag filtering, and anti-ban protections.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-yellow.svg)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-3.x-green.svg)](https://flask.palletsprojects.com)
-[![Version](https://img.shields.io/badge/Version-3.0.0-ff9ff3.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-3.1.0-ff9ff3.svg)](CHANGELOG.md)
 
 [English](README.md) | [فارسی](README_fa.md)
 
@@ -19,13 +19,14 @@ Supports Rule34, Safebooru, Zerochan, Waifu.im, and Nekos.best with real-time lo
 
 ## Features
 
-- **Multi-Platform** -- Built-in modules for 5 imageboard APIs
+- **Multi-Platform** -- Built-in modules for 7 imageboard APIs
 - **Modern Web UI** -- Glass-morphism dark theme, opens in your default browser
 - **Discovery Engine & Archives** -- Live extraction of tags and artists from downloaded media, displayed in a dedicated Image Archive tab.
 - **Favorites & Search History** -- Add tags to your favorites list for one-click search automation, and maintain a log of your search history.
-- **Video Support** -- Exclusively target and download `.mp4` and `.webm` files via backend format filtering.
+- **Video & GIF Support** -- Exclusively target `.mp4`, `.webm`, or GIF files via format filtering.
+- **GIFs Only Filter** -- Rule34 supports a dedicated GIFs Only mode alongside Images/Videos/All.
 - **Real-Time Logs** -- Live console output via WebSocket (Socket.IO)
-- **Advanced Search** -- AND/OR tag queries, exclusions (`-video`, `-gif`), custom sorting
+- **Advanced Search** -- AND/OR tag queries, exclusions (`-video`, `-image`), custom sorting, category-based browsing
 - **Anti-Ban Engine** -- Tactical delays, retry loops, rate-limit handling
 - **Proxy Support** -- Full proxy configuration from the UI (v2rayN, Clash, etc.)
 - **API Key Management** -- Manage Rule34 credentials directly from the Web UI
@@ -39,8 +40,8 @@ Supports Rule34, Safebooru, Zerochan, Waifu.im, and Nekos.best with real-time lo
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/RemLover-Dev/Rem-God-Catcher.git
-cd Rem-God-Catcher
+git clone https://github.com/callmedark44/RemGodCatcher.git
+cd RemGodCatcher
 ```
 
 ### 2. Install Dependencies
@@ -112,6 +113,7 @@ Rem God Catcher/
 | **Zerochan** | Tag search with live suggestions | No | Built-in retry & rate limiting |
 | **Waifu.im** | Name-to-slug conversion, NSFW toggle | Yes | Uses local `tags.json` for suggestions |
 | **Nekos.best** | Category-based (PNG / GIF) | No | Multiple format support |
+| **Nekos.life** | Category-based with type indicators (GIF/Static/Mixed) | Yes | Animated neko, hug, pat, cuddle, and more |
 
 ---
 
