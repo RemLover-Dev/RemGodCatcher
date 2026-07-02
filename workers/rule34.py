@@ -48,7 +48,6 @@ def worker_rule34(tag, amount, method, sort_type, sort_order, exclusions, net_co
     if not safe_tag_dir: safe_tag_dir = "mixed_tags"
 
     tag_dir = os.path.join(site_root, safe_tag_dir)
-    os.makedirs(tag_dir, exist_ok=True)
 
     try:
         from rule34Py import rule34Py
@@ -133,6 +132,7 @@ def worker_rule34(tag, amount, method, sort_type, sort_order, exclusions, net_co
                 success = False
                 for dl_attempt in range(dl_retries):
                     try:
+                        os.makedirs(tag_dir, exist_ok=True)
                         resp = client.session.get(file_url, stream=True, timeout=30)
                         resp.raise_for_status()
                         with open(filepath, 'wb') as f:

@@ -35,7 +35,6 @@ def worker_zerochan(tag, amount, net_config):
 
     safe_tag = re.sub(r'[\\/*?:"<>|]', "", tag).replace(' ', '_')
     tag_dir = os.path.join(site_root, safe_tag)
-    os.makedirs(tag_dir, exist_ok=True)
     encoded_tag = urllib.parse.quote_plus(tag)
 
     downloaded = 0
@@ -77,6 +76,7 @@ def worker_zerochan(tag, amount, net_config):
             success = False
             for dl_attempt in range(dl_retries):
                 try:
+                    os.makedirs(tag_dir, exist_ok=True)
                     r = session.get(img_url, stream=True, timeout=20)
                     r.raise_for_status()
                     with open(filepath, 'wb') as f:
