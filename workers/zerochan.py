@@ -6,7 +6,7 @@ import re
 import urllib.parse
 
 import shared
-from shared import log_msg, STOP_EVENTS, MASTER_FOLDER, load_history, save_history, get_session
+from shared import log_msg, STOP_EVENTS, load_history, save_history, get_session
 
 def worker_zerochan(tag, amount, net_config):
     name = "zero"
@@ -15,11 +15,10 @@ def worker_zerochan(tag, amount, net_config):
 
     anti_ban_pause = float(net_config.get("anti_ban_pause", 3.0))
     dl_retries = int(net_config.get("download_retries", 3))
-    tag = tag.split('|')[0].strip()
+    tag = tag.strip().lower()
     log_msg(name, f"Initializing worker for tag: '{tag}'")
-    session = get_session("zero", net_config)
 
-    site_root = os.path.join(MASTER_FOLDER, "Zerochan")
+    site_root = os.path.join(shared.MASTER_FOLDER, "Zerochan")
     os.makedirs(site_root, exist_ok=True)
     dl_history = load_history(site_root)
 
@@ -33,7 +32,8 @@ def worker_zerochan(tag, amount, net_config):
     except Exception:
         pass
 
-    safe_tag = re.sub(r'[\\/*?:"<>|]', "", tag).replace(' ', '_')
+    clean_tag = " ".join(t for t in tag.split() if not t.startswith('-'))
+    safe_tag = re.sub(r'[\\/*?:"<>|]', "", clean_tag).replace(' ', '_')
     tag_dir = os.path.join(site_root, safe_tag)
     os.makedirs(tag_dir, exist_ok=True)
     encoded_tag = urllib.parse.quote_plus(tag)

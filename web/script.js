@@ -297,6 +297,7 @@ function startWorker(workerName) {
             payload.tag += " video";
         }
         payload.exclusions = ex;
+        if (document.getElementById('gelNoAI').checked) payload.tag += " -ai_generated";
 
     } else if (workerName === 'yande') {
         payload.tag = document.getElementById('yandeTag').value;

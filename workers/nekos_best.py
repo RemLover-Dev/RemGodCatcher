@@ -3,7 +3,8 @@ import time
 import threading
 import random
 
-from shared import log_msg, STOP_EVENTS, MASTER_FOLDER, load_history, save_history, get_session
+from shared import log_msg, STOP_EVENTS, load_history, save_history, get_session
+import shared
 
 def worker_nekos_best(category, amount, net_config):
     name = "neko"
@@ -14,7 +15,7 @@ def worker_nekos_best(category, amount, net_config):
     dl_retries = int(net_config.get("download_retries", 3))
     log_msg(name, f"Initializing worker for category: '{category}'")
 
-    site_root = os.path.join(MASTER_FOLDER, "Nekos.best")
+    site_root = os.path.join(shared.MASTER_FOLDER, "Nekos.best")
     os.makedirs(site_root, exist_ok=True)
     dl_history = load_history(site_root)
 

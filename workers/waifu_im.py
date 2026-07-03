@@ -4,8 +4,8 @@ import threading
 import random
 import re
 
-from shared import log_msg, STOP_EVENTS, MASTER_FOLDER, load_history, save_history, get_session
-import shared # Need to access WAIFU_TAG_MAP
+from shared import log_msg, STOP_EVENTS, load_history, save_history, get_session
+import shared
 
 def waifu_name_to_slug(name):
     name_lower = name.lower().strip()
@@ -27,11 +27,12 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
     slug = waifu_name_to_slug(tag)
     log_msg(name, f"Initializing worker for tag: '{tag}' -> slug: '{slug}' (NSFW: {is_nsfw})")
 
-    site_root = os.path.join(MASTER_FOLDER, "Waifu.im")
+    site_root = os.path.join(shared.MASTER_FOLDER, "Waifu.im")
     os.makedirs(site_root, exist_ok=True)
     dl_history = load_history(site_root)
 
-    safe_tag = re.sub(r'[\\/*?:"<>|]', "", tag).replace(' ', '_')
+    clean_tag = " ".join(t for t in tag.split() if not t.startswith('-'))
+    safe_tag = re.sub(r'[\\/*?:"<>|]', "", clean_tag).replace(' ', '_')
     tag_dir = os.path.join(site_root, "nsfw_" + safe_tag if is_nsfw else safe_tag)
     os.makedirs(tag_dir, exist_ok=True)
     session = get_session("waifu", net_config)

@@ -5,7 +5,7 @@ import random
 import re
 
 import shared
-from shared import log_msg, STOP_EVENTS, MASTER_FOLDER, load_history, save_history
+from shared import log_msg, STOP_EVENTS, load_history, save_history
 
 def worker_rule34(tag, amount, method, sort_type, sort_order, exclusions, net_config):
     name = "rule34"
@@ -39,7 +39,7 @@ def worker_rule34(tag, amount, method, sort_type, sort_order, exclusions, net_co
 
     log_msg(name, f"Final Payload sent to rule34Py: {TAGS}")
 
-    site_root = os.path.join(MASTER_FOLDER, "Rule34")
+    site_root = os.path.join(shared.MASTER_FOLDER, "Rule34")
     os.makedirs(site_root, exist_ok=True)
     dl_history = load_history(site_root)
 

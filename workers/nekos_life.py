@@ -3,7 +3,7 @@ import time
 import threading
 import random
 
-from shared import log_msg, STOP_EVENTS, MASTER_FOLDER, load_history, save_history, get_session
+from shared import log_msg, STOP_EVENTS, load_history, save_history, get_session
 
 GIF_ONLY = {"ngif", "hug", "pat", "cuddle", "tickle", "feed", "slap", "kiss", "smug"}
 STATIC_ONLY = {"gecg", "meow", "neko", "lewd", "gasm", "8ball", "avatar", "woof", "fox_girl", "waifu"}
@@ -23,7 +23,7 @@ def worker_nekos_life(category, amount, net_config):
     else:
         log_msg(name, f"Initializing worker for category: '{category}' [UNKNOWN TYPE]")
 
-    site_root = os.path.join(MASTER_FOLDER, "Nekos.life")
+    site_root = os.path.join(shared.MASTER_FOLDER, "Nekos.life")
     os.makedirs(site_root, exist_ok=True)
     dl_history = load_history(site_root)
 
