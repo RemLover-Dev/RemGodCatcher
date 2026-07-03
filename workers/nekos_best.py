@@ -19,6 +19,7 @@ def worker_nekos_best(category, amount, net_config):
     dl_history = load_history(site_root)
 
     cat_dir = os.path.join(site_root, category)
+    os.makedirs(cat_dir, exist_ok=True)
     session = get_session("neko", net_config)
 
     downloaded = 0
@@ -54,7 +55,6 @@ def worker_nekos_best(category, amount, net_config):
             success = False
             for dl_attempt in range(dl_retries):
                 try:
-                    os.makedirs(cat_dir, exist_ok=True)
                     r = session.get(url, stream=True, timeout=15)
                     r.raise_for_status()
                     with open(filepath, 'wb') as f:

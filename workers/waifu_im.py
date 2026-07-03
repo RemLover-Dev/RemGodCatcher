@@ -33,6 +33,7 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
 
     safe_tag = re.sub(r'[\\/*?:"<>|]', "", tag).replace(' ', '_')
     tag_dir = os.path.join(site_root, "nsfw_" + safe_tag if is_nsfw else safe_tag)
+    os.makedirs(tag_dir, exist_ok=True)
     session = get_session("waifu", net_config)
 
     downloaded = 0
@@ -81,7 +82,6 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
             success = False
             for dl_attempt in range(dl_retries):
                 try:
-                    os.makedirs(tag_dir, exist_ok=True)
                     r = session.get(url, stream=True, timeout=api_timeout)
                     r.raise_for_status()
                     with open(filepath, 'wb') as f:

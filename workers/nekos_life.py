@@ -28,6 +28,7 @@ def worker_nekos_life(category, amount, net_config):
     dl_history = load_history(site_root)
 
     cat_dir = os.path.join(site_root, category)
+    os.makedirs(cat_dir, exist_ok=True)
     session = get_session("neko", net_config)
     anti_ban_pause = float(net_config.get("anti_ban_pause", 3.0))
     dl_retries = int(net_config.get("download_retries", 3))
@@ -65,7 +66,6 @@ def worker_nekos_life(category, amount, net_config):
         success = False
         for dl_attempt in range(dl_retries):
             try:
-                os.makedirs(cat_dir, exist_ok=True)
                 r = session.get(url, stream=True, timeout=15)
                 r.raise_for_status()
                 with open(filepath, 'wb') as f:

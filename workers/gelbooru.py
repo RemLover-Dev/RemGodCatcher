@@ -24,6 +24,7 @@ def worker_gelbooru(tag, amount, exclusions, net_config):
 
     safe_tag = re.sub(r'[\\/*?:"<>|]', "", tag).replace(' ', '_')
     tag_dir = os.path.join(site_root, safe_tag)
+    os.makedirs(tag_dir, exist_ok=True)
 
     api_key = os.getenv("GELBOORU_API_KEY", "")
     user_id = os.getenv("GELBOORU_USER_ID", "")
@@ -100,7 +101,6 @@ def worker_gelbooru(tag, amount, exclusions, net_config):
             success = False
             for dl_attempt in range(dl_retries):
                 try:
-                    os.makedirs(tag_dir, exist_ok=True)
                     r = session.get(file_url, stream=True, timeout=20, headers={"Referer": "https://gelbooru.com/"})
                     r.raise_for_status()
 

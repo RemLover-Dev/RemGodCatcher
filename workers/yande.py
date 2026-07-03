@@ -26,6 +26,7 @@ def worker_yande(tag, amount, rating, net_config):
 
     safe_tag = re.sub(r'[\\/*?"<>|]', "", tag).replace(' ', '_')
     tag_dir = os.path.join(site_root, safe_tag)
+    os.makedirs(tag_dir, exist_ok=True)
 
     downloaded = 0
     page = 1
@@ -81,6 +82,7 @@ def worker_yande(tag, amount, rating, net_config):
             rating_map = {"s": "Safe", "q": "Moderate", "e": "NSFW"}
             rating_label = rating_map.get(post_rating, "Unknown")
             dl_dir = os.path.join(tag_dir, rating_label)
+            os.makedirs(dl_dir, exist_ok=True)
 
             if rating:
                 filter_rating = rating.split(":")[-1]
@@ -104,8 +106,6 @@ def worker_yande(tag, amount, rating, net_config):
             success = False
             for dl_attempt in range(dl_retries):
                 try:
-                    os.makedirs(tag_dir, exist_ok=True)
-                    os.makedirs(dl_dir, exist_ok=True)
                     r = session.get(url, stream=True, timeout=20)
                     r.raise_for_status()
                     with open(filepath, 'wb') as f:
