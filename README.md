@@ -40,7 +40,7 @@ Supports Rule34, Safebooru, Gelbooru, Zerochan, Waifu.im, Nekos.best, Nekos.life
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/callmedark44/RemGodCatcher.git
+git clone https://github.com/RemLover-Dev/RemGodCatcher.git
 cd RemGodCatcher
 ```
 

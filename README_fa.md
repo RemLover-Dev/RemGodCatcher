@@ -42,7 +42,7 @@
 ### ۱. کلون مخزن
 
 ```bash
-git clone https://github.com/callmedark44/RemGodCatcher.git
+git clone https://github.com/RemLover-Dev/RemGodCatcher.git
 cd RemGodCatcher
 ```
 
