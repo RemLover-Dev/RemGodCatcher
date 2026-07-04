@@ -144,12 +144,12 @@ async function resetColors() {
             "btn_stop_bg": "#ff9ff3", "btn_stop_text": "#1a0a1a"
         },
         "light": {
-            "title": "#006b6b",
+            "title": "#004d4d",
             "text": "#1a1a2e",
-            "accent": "#c400a4",
+            "accent": "#a0008a",
             "tab_text": "#1a1a2e",
-            "btn_start_bg": "#006b6b", "btn_start_text": "#ffffff",
-            "btn_stop_bg": "#c400a4", "btn_stop_text": "#ffffff"
+            "btn_start_bg": "#004d4d", "btn_start_text": "#ffffff",
+            "btn_stop_bg": "#a0008a", "btn_stop_text": "#ffffff"
         }
     };
 
@@ -197,7 +197,7 @@ async function resetWallpapersUI() {
 
     let status = document.getElementById("wpSaveStatusUI");
     status.textContent = "Wallpapers Reset!";
-    status.style.color = "#ff9ff3";
+    status.style.color = "var(--accent-color)";
     setTimeout(() => { status.textContent = ""; status.style.color = "var(--title-color)"; }, 2000);
 }
 
@@ -294,7 +294,7 @@ function updateNekosLifeType() {
     
     if (gifOnly.includes(cat)) {
         typeEl.textContent = "[GIF]";
-        typeEl.style.color = "#ff9ff3";
+        typeEl.style.color = "var(--accent-color)";
     } else if (staticOnly.includes(cat)) {
         typeEl.textContent = "[STATIC]";
         typeEl.style.color = "#00d2d3";

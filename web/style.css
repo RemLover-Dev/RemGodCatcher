@@ -29,6 +29,8 @@
     --border-color: rgba(0, 0, 0, 0.15);
     --tab-hover: rgba(0, 0, 0, 0.05);
     --tab-active-bg: rgba(0, 122, 122, 0.12);
+    --title-color: #004d4d;
+    --accent-color: #a0008a;
 
     --tab-text: #1a1a2e;
     --text-shadow: none;
