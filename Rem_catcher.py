@@ -54,18 +54,6 @@ STARTUP_CONFIG = {
     "api_timeout": int(os.getenv("API_TIMEOUT", "10")),
     "retry_wait": int(os.getenv("RETRY_WAIT", "5")),
     "anti_ban_pause": float(os.getenv("ANTI_BAN_PAUSE", "3.0")),
-    
-    "wp_main": os.getenv("WP_MAIN", "Rem_main.png"),
-    "wp_neko": os.getenv("WP_NEKO", "Rem_neko.jpg"),
-    "wp_zero": os.getenv("WP_ZERO", "Rem_zero.jpg"),
-    "wp_waifu": os.getenv("WP_WAIFU", "Rem_waifu.png"),
-    "wp_safe": os.getenv("WP_SAFE", "Rem_safe.jpg"),
-    "wp_rule34": os.getenv("WP_RULE34", "Rem_rule34.jpg"),
-    "wp_gelbooru": os.getenv("WP_GELBOORU", "Rem_gelbooru.jpg"),
-    "wp_nekos_life": os.getenv("WP_NEKOS_LIFE", "Rem_nekos_life.jpg"),
-    "wp_options": os.getenv("WP_OPTIONS", "Rem_option.jpg"),
-    "wp_history": os.getenv("WP_HISTORY", "Rem_history.jpg"),
-    "wp_yande": os.getenv("WP_YANDE", "Rem_yande.jpg"),
     "download_retries": int(os.getenv("DOWNLOAD_RETRIES", "3"))
 }
 
@@ -210,18 +198,7 @@ def config_manager():
             "API_TIMEOUT": str(STARTUP_CONFIG['api_timeout']),
             "RETRY_WAIT": str(STARTUP_CONFIG['retry_wait']),
             "ANTI_BAN_PAUSE": str(STARTUP_CONFIG['anti_ban_pause']),
-            "DOWNLOAD_RETRIES": str(STARTUP_CONFIG['download_retries']),
-            "WP_MAIN": STARTUP_CONFIG['wp_main'],
-            "WP_NEKO": STARTUP_CONFIG['wp_neko'],
-            "WP_ZERO": STARTUP_CONFIG['wp_zero'],
-            "WP_WAIFU": STARTUP_CONFIG['wp_waifu'],
-            "WP_SAFE": STARTUP_CONFIG['wp_safe'],
-            "WP_RULE34": STARTUP_CONFIG['wp_rule34'],
-            "WP_GELBOORU": STARTUP_CONFIG['wp_gelbooru'],
-            "WP_YANDE": STARTUP_CONFIG['wp_yande'],
-            "WP_NEKOS_LIFE": STARTUP_CONFIG['wp_nekos_life'],
-            "WP_OPTIONS": STARTUP_CONFIG['wp_options'],
-            "WP_HISTORY": STARTUP_CONFIG['wp_history']
+            "DOWNLOAD_RETRIES": str(STARTUP_CONFIG['download_retries'])
         }
 
         new_lines = []
@@ -431,7 +408,7 @@ def manage_ui_config():
             "Yande": {"dark": "Rem_yande_d.png", "light": "Rem_yande_l.png"},
             "History": {"dark": "Rem_history_d.png", "light": "Rem_history_l.png"},
             "Options": {"dark": "Rem_option_d.png", "light": "Rem_option_l.png"},
-            "Customize": {"dark": "Rem_option_d.png", "light": "Rem_option_l.png"}
+            "Customize": {"dark": "Rem_custom_d.png", "light": "Rem_custom_l.png"}
         },
         "colors": {
             "dark": {
