@@ -21,6 +21,7 @@ def worker_zerochan(tag, amount, net_config):
     site_root = os.path.join(shared.MASTER_FOLDER, "Zerochan")
     os.makedirs(site_root, exist_ok=True)
     dl_history = load_history(site_root)
+    session = get_session("zero", net_config)
 
     try:
         r_resp = session.get(f"https://www.zerochan.net/{urllib.parse.quote_plus(tag)}", timeout=10, allow_redirects=True)

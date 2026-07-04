@@ -11,7 +11,7 @@ def waifu_name_to_slug(name):
     name_lower = name.lower().strip()
     if name_lower in shared.WAIFU_TAG_MAP:
         return shared.WAIFU_TAG_MAP[name_lower]
-    return name_lower
+    return name_lower.replace(" ", "-")
 
 def worker_waifu(tag, amount, is_nsfw, net_config):
     name = "waifu"

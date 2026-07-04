@@ -83,11 +83,13 @@ Rem God Catcher/
 ├── shared.py               # Core utilities, tag handler, and logging bridge
 ├── workers/                # API-specific download modules
 ├── tags.json               # Waifu.im tag database (name -> slug mapping)
-├── safe_tag_names.json     # Safebooru offline tag database
-├── yande_tag_names.json    # Yande.re offline tag database
-├── tag_history.json        # Search history database (git-ignored)
-├── fav_tags.json           # User favorites database (git-ignored)
-├── image_history.json      # Per-image tag archive (git-ignored)
+├── database/               # Tag databases & user data
+│   ├── safe_tag_names.json     # Safebooru offline tag database
+│   ├── yande_tag_names.json    # Yande.re offline tag database
+│   ├── tag_history.json        # Search history database (git-ignored)
+│   ├── fav_tags.json           # User favorites database (git-ignored)
+│   ├── image_history.json      # Per-image tag archive (git-ignored)
+│   └── ui_config.json          # Theme & wallpaper config (git-ignored)
 ├── .env                    # API keys & proxy config (git-ignored)
 ├── .gitignore
 ├── LICENSE
@@ -99,7 +101,7 @@ Rem God Catcher/
     ├── script.js            # Frontend logic (Socket.IO + fetch API)
     ├── style.css            # Glass-morphism dark theme (Inter font)
     ├── Fonts/               # Offline fonts (Playfair, MonoLisa)
-    └── wallpaper/           # Background images per tab
+    └── wallpaper/           # Background images per tab (dark/light mode)
 ```
 
 ---

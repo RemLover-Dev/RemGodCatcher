@@ -3,6 +3,7 @@ import time
 import threading
 import random
 
+import shared
 from shared import log_msg, STOP_EVENTS, load_history, save_history, get_session
 
 GIF_ONLY = {"ngif", "hug", "pat", "cuddle", "tickle", "feed", "slap", "kiss", "smug"}
@@ -34,6 +35,7 @@ def worker_nekos_life(category, amount, net_config):
     dl_retries = int(net_config.get("download_retries", 3))
 
     downloaded = 0
+    duplicate_count = 0
     api_base = "https://nekos.life/api/v2"
     fetch_url = f"{api_base}/img/{category}"
 
@@ -61,8 +63,14 @@ def worker_nekos_life(category, amount, net_config):
         filepath = os.path.join(cat_dir, filename)
 
         if filename in dl_history or os.path.exists(filepath):
+            duplicate_count += 1
+            if duplicate_count >= 20:
+                log_msg(name, "Database exhausted! Too many duplicates. Stopping.")
+                break
+            time.sleep(0.5)
             continue
 
+        duplicate_count = 0
         success = False
         for dl_attempt in range(dl_retries):
             try:

@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [4.0.0] - Rem 4: The Theme & Visual Harmony Update - 2026-07-04
 
+### Added
+- **Dark/Light Mode Wallpapers** -- Every tab now has dedicated dark (`_d.png`) and light (`_l.png`) wallpaper variants in `web/wallpaper/`, replacing the old single-format images.
+- **Database Folder** -- Tag databases and user data (`safe_tag_names.json`, `yande_tag_names.json`, `tag_history.json`, `fav_tags.json`, `image_history.json`, `ui_config.json`) moved to a dedicated `database/` directory for cleaner project root.
+- **UI Config API** -- New `/api/ui_config` endpoint saves and loads theme mode, wallpaper assignments, and color palette to `database/ui_config.json`.
+- **Nekos.life Duplicate Guard** -- Worker now stops after 20 consecutive duplicates instead of looping forever on exhausted APIs.
+- **Waifu.im Slug Fix** -- Tag names with spaces are now converted to hyphens (e.g. `genshin impact` becomes `genshin-impact`) for correct API queries.
+- **Zerochan Session Config** -- Worker now creates a properly configured session with proxy and timeout settings.
+- **Yande.re Ghost Thread Killer** -- Starting a new search now kills any old running thread, preventing ghost downloads.
+- **Yande.re Download Timeout** -- Increased from 20s to 60s for large image downloads.
+- **Yande.re Stop-Aware Retries** -- Retry loops now check the stop event, allowing instant cancellation.
+
 ### Changed
 - **Glass-Morphism Light Theme** -- Reduced opacity of `--panel-bg` and `--input-bg` in the light theme for a true frosted-glass effect.
 - **Light Theme Color Harmony** -- All hardcoded colors in History, Favorites, and Image Archive UI replaced with CSS custom properties (`--text-color`, `--accent-color`, `--border-color`, `--input-bg`, `--tab-active-bg`) for consistent theming.
@@ -16,6 +27,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **History Empty State** -- Changed from hardcoded `gray` to `var(--text-color)` with opacity.
 - **Image Archive Cards** -- All hardcoded colors (`rgba(0,0,0,0.6)`, `#ff9ff3`, `#00d2d3`, `#ccc`, `white`) replaced with CSS variables for full light/dark theme support.
 - **Image Tags** -- Favorite state tags now use `var(--accent-color)` for both background and text, with `var(--input-bg)` for non-favorite state.
+- **MASTER_FOLDER** -- Now uses `BASE_DIR` instead of `os.getcwd()` for consistent path resolution across environments.
+- **Rule34 Import** -- `rule34Py` import moved to module top level for cleaner initialization.
+
+### Removed
+- **Old Single-Format Wallpapers** -- Removed `.jpg` and single `.png` wallpapers from `web/wallpaper/`, replaced by dark/light mode pairs.
+- **Root-Level Tag Databases** -- `safe_tag_names.json` and `yande_tag_names.json` removed from project root (now in `database/`).
 
 ---
 

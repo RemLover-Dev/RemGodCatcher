@@ -6,7 +6,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MASTER_FOLDER = os.path.join(os.getcwd(), "Rem God")
+MASTER_FOLDER = os.path.join(BASE_DIR, "Rem God")
 HISTORY_LOCK = threading.Lock()
 STOP_EVENTS = {}
 

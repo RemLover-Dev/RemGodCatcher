@@ -6,6 +6,7 @@ import re
 
 import shared
 from shared import log_msg, STOP_EVENTS, load_history, save_history
+from rule34Py import rule34Py
 
 def worker_rule34(tag, amount, method, sort_type, sort_order, exclusions, net_config):
     name = "rule34"
@@ -51,7 +52,6 @@ def worker_rule34(tag, amount, method, sort_type, sort_order, exclusions, net_co
     os.makedirs(tag_dir, exist_ok=True)
 
     try:
-        from rule34Py import rule34Py
         client = rule34Py()
 
         api_key = os.getenv("RULE34_API_KEY", "")

@@ -9,8 +9,14 @@ from shared import log_msg, STOP_EVENTS, load_history, save_history, get_session
 
 def worker_yande(tag, amount, rating, net_config):
     name = "yande"
-    STOP_EVENTS[name] = threading.Event()
-    stop_event = STOP_EVENTS[name]
+
+    # Ghost Thread Killer: Stop any old running thread before starting a new one
+    if name in STOP_EVENTS and STOP_EVENTS[name] is not None:
+        STOP_EVENTS[name].set()
+
+    my_stop_event = threading.Event()
+    STOP_EVENTS[name] = my_stop_event
+    stop_event = my_stop_event
 
     anti_ban_pause = float(net_config.get("anti_ban_pause", 3.0))
     dl_retries = int(net_config.get("download_retries", 3))
@@ -25,7 +31,7 @@ def worker_yande(tag, amount, rating, net_config):
     session = get_session("yande", net_config)
 
     clean_tag = " ".join(t for t in tag.split() if not t.startswith('-'))
-    safe_tag = re.sub(r'[\\/*?"<>|]', "", clean_tag).replace(' ', '_')
+    safe_tag = re.sub(r'[\\/*?:"<>|]', "", clean_tag).replace(' ', '_')
     tag_dir = os.path.join(site_root, safe_tag)
     os.makedirs(tag_dir, exist_ok=True)
 
@@ -107,7 +113,7 @@ def worker_yande(tag, amount, rating, net_config):
             success = False
             for dl_attempt in range(dl_retries):
                 try:
-                    r = session.get(url, stream=True, timeout=20)
+                    r = session.get(url, stream=True, timeout=60)
                     r.raise_for_status()
                     with open(filepath, 'wb') as f:
                         for chunk in r.iter_content(8192):
@@ -138,11 +144,18 @@ def worker_yande(tag, amount, rating, net_config):
                     success = True
                     break
                 except Exception as e:
-                    if dl_attempt < 2:
+                    if stop_event.is_set():
+                        break
+                    if dl_attempt < dl_retries - 1:
                         log_msg(name, f"[RETRY {dl_attempt+1}/{dl_retries}] {filename}: {e}")
-                        time.sleep(2)
+                        for _ in range(20):
+                            if stop_event.is_set(): break
+                            time.sleep(0.1)
                     else:
                         log_msg(name, f"[FAILED] {filename}: {e}")
+
+            if stop_event.is_set():
+                break
             if not success:
                 continue
 

@@ -43,7 +43,8 @@ SAFE_TAGS_DB = []
 YANDE_TAGS_DB = []
 WAIFU_TAGS_DB = []
 WAIFU_TAG_MAP = {}
-MASTER_FOLDER = os.path.join(os.getcwd(), "Rem God")
+MASTER_FOLDER = os.path.join(BASE_DIR, "Rem God")
+DATABASE_DIR = os.path.join(BASE_DIR, "database")
 HISTORY_LOCK = threading.Lock()
 
 STARTUP_CONFIG = {
@@ -145,8 +146,8 @@ def get_session(site, net_config):
 
 def load_safe_db():
     global SAFE_TAGS_DB
-    db_path = os.path.join(BASE_DIR, "safe_tag_names.json")
-    if not os.path.exists(db_path): db_path = os.path.join(BASE_DIR, "tag_names.json")
+    db_path = os.path.join(DATABASE_DIR, "safe_tag_names.json")
+    if not os.path.exists(db_path): db_path = os.path.join(DATABASE_DIR, "tag_names.json")
     if os.path.exists(db_path):
         try:
             with open(db_path, "r", encoding="utf-8") as f: SAFE_TAGS_DB = json.load(f)
@@ -154,7 +155,7 @@ def load_safe_db():
 
 def load_yande_db():
     global YANDE_TAGS_DB
-    db_path = os.path.join(BASE_DIR, "yande_tag_names.json")
+    db_path = os.path.join(DATABASE_DIR, "yande_tag_names.json")
     if os.path.exists(db_path):
         try:
             with open(db_path, "r", encoding="utf-8") as f: YANDE_TAGS_DB = json.load(f)
@@ -354,9 +355,10 @@ def get_yande_suggestions():
     return jsonify([t for t in YANDE_TAGS_DB if t.startswith(query)][:50])
 
 # --- TAG HISTORY & FAVORITES API ---
-TAG_HISTORY_FILE = os.path.join(BASE_DIR, "tag_history.json")
-FAV_TAGS_FILE = os.path.join(BASE_DIR, "fav_tags.json")
-IMAGE_HISTORY_FILE = os.path.join(BASE_DIR, "image_history.json")
+TAG_HISTORY_FILE = os.path.join(DATABASE_DIR, "tag_history.json")
+FAV_TAGS_FILE = os.path.join(DATABASE_DIR, "fav_tags.json")
+IMAGE_HISTORY_FILE = os.path.join(DATABASE_DIR, "image_history.json")
+UI_CONFIG_FILE = os.path.join(DATABASE_DIR, "ui_config.json")
 
 def load_json_db(filepath):
     if os.path.exists(filepath):
@@ -411,6 +413,50 @@ def manage_favorites():
         save_json_db(FAV_TAGS_FILE, favs)
         return jsonify({"success": True, "favorites": favs})
     return jsonify(favs)
+
+
+@app.route("/api/ui_config", methods=["GET", "POST"])
+def manage_ui_config():
+    default_config = {
+        "theme_mode": "dark",
+        "wallpapers": {
+            "Main": {"dark": "Rem_main_d.png", "light": "Rem_main_l.png"},
+            "Neko": {"dark": "Rem_neko_d.png", "light": "Rem_neko_l.png"},
+            "NekosLife": {"dark": "Rem_nekolife_d.png", "light": "Rem_nekolife_l.png"},
+            "Zero": {"dark": "Rem_zero_d.png", "light": "Rem_zero_l.png"},
+            "Waifu": {"dark": "Rem_waifu_d.png", "light": "Rem_waifu_l.png"},
+            "Safe": {"dark": "Rem_safe_d.png", "light": "Rem_safe_l.png"},
+            "Gelbooru": {"dark": "Rem_gelbooru_d.png", "light": "Rem_gelbooru_l.png"},
+            "Rule34": {"dark": "Rem_rule34_d.png", "light": "Rem_rule34_l.png"},
+            "Yande": {"dark": "Rem_yande_d.png", "light": "Rem_yande_l.png"},
+            "History": {"dark": "Rem_history_d.png", "light": "Rem_history_l.png"},
+            "Options": {"dark": "Rem_option_d.png", "light": "Rem_option_l.png"},
+            "Customize": {"dark": "Rem_option_d.png", "light": "Rem_option_l.png"}
+        },
+        "colors": {
+            "dark": {
+                "title": "#00d2d3", "text": "#ffffff", "accent": "#ff9ff3", "tab_text": "#ffffff",
+                "btn_start_bg": "#00d2d3", "btn_start_text": "#0a0a0a",
+                "btn_stop_bg": "#ff9ff3", "btn_stop_text": "#1a0a1a"
+            },
+            "light": {
+                "title": "#0097e6", "text": "#2f3640", "accent": "#8c7ae6", "tab_text": "#1a1a2e",
+                "btn_start_bg": "#0097e6", "btn_start_text": "#ffffff",
+                "btn_stop_bg": "#8c7ae6", "btn_stop_text": "#ffffff"
+            }
+        }
+    }
+
+    if request.method == "POST":
+        data = request.json
+        save_json_db(UI_CONFIG_FILE, data)
+        return jsonify({"success": True})
+
+    config = load_json_db(UI_CONFIG_FILE)
+    if not config:
+        config = default_config
+        save_json_db(UI_CONFIG_FILE, config)
+    return jsonify(config)
 
 
 # ==========================================
