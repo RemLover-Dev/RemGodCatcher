@@ -19,10 +19,11 @@
             <button class="tab-btn" onclick="openTab('Waifu', this)">Waifu.im</button>
             <button class="tab-btn" onclick="openTab('Safe', this)">Safebooru</button>
             <button class="tab-btn" onclick="openTab('Gelbooru', this)">Gelbooru</button>
-            <button class="tab-btn" onclick="openTab('Rule34', this)" style="color: #ff9ff3;">Rule34</button>
+            <button class="tab-btn" onclick="openTab('Rule34', this)">Rule34</button>
             <button class="tab-btn" onclick="openTab('Yande', this)">Yande.re</button>
             <button class="tab-btn" onclick="openTab('History', this)">History</button>
-            <button class="tab-btn" onclick="openTab('ApiSettings', this)" style="color: #00d2d3;">Options</button>
+            <button class="tab-btn" onclick="openTab('Options', this)">Options</button>
+            <button class="tab-btn" onclick="openTab('Customize', this)">Customize</button>
         </div>
 
         <div class="tab-container">
@@ -31,7 +32,7 @@
                     <h2>System Setup</h2>
                     <div class="input-group">
                         <label>Master Folder:</label>
-                        <span id="folderDisplay" style="color: #ff9ff3; flex-grow: 1; font-family: monospace;">Loading...</span>
+                        <span id="folderDisplay" style="color: var(--accent-color); flex-grow: 1; font-family: monospace;">Loading...</span>
                         <button class="action-btn" onclick="browseFolder()">Browse</button>
                     </div>
 
@@ -48,108 +49,7 @@
                     </div>
 
                     <div style="margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
-                        <p style="color: #00d2d3; font-size: 14px; font-weight: bold; margin-bottom: 8px;">Themes & Wallpapers</p>
-                        <p style="color: gray; font-size: 11px; margin-bottom: 10px;">Select custom backgrounds. Files are permanently saved to the app folder.</p>
-
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <label style="font-size: 12px;">Main Tab:</label>
-                                <div style="display: flex; gap: 5px;">
-                                    <input type="text" id="wp_main" style="width: 95px; font-size: 12px;" readonly>
-                                    <button class="action-btn" style="padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('file_wp_main').click()">Browse</button>
-                                    <input type="file" id="file_wp_main" accept="image/*" style="display: none" onchange="uploadWallpaper('wp_main', 'Main', this)">
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <label style="font-size: 12px;">Nekos.best:</label>
-                                <div style="display: flex; gap: 5px;">
-                                    <input type="text" id="wp_neko" style="width: 95px; font-size: 12px;" readonly>
-                                    <button class="action-btn" style="padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('file_wp_neko').click()">Browse</button>
-                                    <input type="file" id="file_wp_neko" accept="image/*" style="display: none" onchange="uploadWallpaper('wp_neko', 'Neko', this)">
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <label style="font-size: 12px;">Nekos.life:</label>
-                                <div style="display: flex; gap: 5px;">
-                                    <input type="text" id="wp_nekos_life" style="width: 95px; font-size: 12px;" readonly>
-                                    <button class="action-btn" style="padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('file_wp_nekos_life').click()">Browse</button>
-                                    <input type="file" id="file_wp_nekos_life" accept="image/*" style="display: none" onchange="uploadWallpaper('wp_nekos_life', 'NekosLife', this)">
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <label style="font-size: 12px;">Zerochan:</label>
-                                <div style="display: flex; gap: 5px;">
-                                    <input type="text" id="wp_zero" style="width: 95px; font-size: 12px;" readonly>
-                                    <button class="action-btn" style="padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('file_wp_zero').click()">Browse</button>
-                                    <input type="file" id="file_wp_zero" accept="image/*" style="display: none" onchange="uploadWallpaper('wp_zero', 'Zero', this)">
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <label style="font-size: 12px;">Waifu.im:</label>
-                                <div style="display: flex; gap: 5px;">
-                                    <input type="text" id="wp_waifu" style="width: 95px; font-size: 12px;" readonly>
-                                    <button class="action-btn" style="padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('file_wp_waifu').click()">Browse</button>
-                                    <input type="file" id="file_wp_waifu" accept="image/*" style="display: none" onchange="uploadWallpaper('wp_waifu', 'Waifu', this)">
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <label style="font-size: 12px;">Safebooru:</label>
-                                <div style="display: flex; gap: 5px;">
-                                    <input type="text" id="wp_safe" style="width: 95px; font-size: 12px;" readonly>
-                                    <button class="action-btn" style="padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('file_wp_safe').click()">Browse</button>
-                                    <input type="file" id="file_wp_safe" accept="image/*" style="display: none" onchange="uploadWallpaper('wp_safe', 'Safe', this)">
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <label style="font-size: 12px;">Rule34:</label>
-                                <div style="display: flex; gap: 5px;">
-                                    <input type="text" id="wp_rule34" style="width: 95px; font-size: 12px;" readonly>
-                                    <button class="action-btn" style="padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('file_wp_rule34').click()">Browse</button>
-                                    <input type="file" id="file_wp_rule34" accept="image/*" style="display: none" onchange="uploadWallpaper('wp_rule34', 'Rule34', this)">
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <label style="font-size: 12px;">Gelbooru:</label>
-                                <div style="display: flex; gap: 5px;">
-                                    <input type="text" id="wp_gelbooru" style="width: 95px; font-size: 12px;" readonly>
-                                    <button class="action-btn" style="padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('file_wp_gelbooru').click()">Browse</button>
-                                    <input type="file" id="file_wp_gelbooru" accept="image/*" style="display: none" onchange="uploadWallpaper('wp_gelbooru', 'Gelbooru', this)">
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <label style="font-size: 12px;">Yande.re:</label>
-                                <div style="display: flex; gap: 5px;">
-                                    <input type="text" id="wp_yande" style="width: 95px; font-size: 12px;" readonly>
-                                    <button class="action-btn" style="padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('file_wp_yande').click()">Browse</button>
-                                    <input type="file" id="file_wp_yande" accept="image/*" style="display: none" onchange="uploadWallpaper('wp_yande', 'Yande', this)">
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <label style="font-size: 12px;">Options:</label>
-                                <div style="display: flex; gap: 5px;">
-                                    <input type="text" id="wp_options" style="width: 95px; font-size: 12px;" readonly>
-                                    <button class="action-btn" style="padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('file_wp_options').click()">Browse</button>
-                                    <input type="file" id="file_wp_options" accept="image/*" style="display: none" onchange="uploadWallpaper('wp_options', 'ApiSettings', this)">
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <label style="font-size: 12px;">History:</label>
-                                <div style="display: flex; gap: 5px;">
-                                    <input type="text" id="wp_history" style="width: 95px; font-size: 12px;" readonly>
-                                    <button class="action-btn" style="padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('file_wp_history').click()">Browse</button>
-                                    <input type="file" id="file_wp_history" accept="image/*" style="display: none" onchange="uploadWallpaper('wp_history', 'History', this)">
-                                </div>
-                            </div>
-                        </div>
-                        <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
-                            <button class="action-btn" onclick="saveWallpapers()" style="font-size: 11px; padding: 6px 12px;">Save Themes</button>
-                            <button class="action-btn stop-btn" onclick="resetWallpapers()" style="font-size: 11px; padding: 6px 12px;">Reset to Default</button>
-                            <span id="wpSaveStatus" style="font-size: 12px; color: #00d2d3;"></span>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
-                        <p style="color: #00d2d3; font-size: 14px; font-weight: bold; margin-bottom: 8px;">❄️ Favorite Tags</p>
+                        <p style="color: var(--title-color); font-size: 14px; font-weight: bold; margin-bottom: 8px;">❄️ Favorite Tags</p>
                         <div id="favoritesListUI" style="display: flex; flex-wrap: wrap; gap: 8px; max-height: 120px; overflow-y: auto;">
                             </div>
                     </div>
@@ -214,14 +114,8 @@
                             <option value="lizard">lizard</option>
                             <option value="span">span</option>
                         </optgroup>
-                        <optgroup label="Other">
-                            <option value="baka">baka</option>
-                            <option value="poke">poke</option>
-                            <option value="kemonomimi">kemonomimi</option>
-                            <option value="holo">holo</option>
-                        </optgroup>
                     </select>
-                    <span id="nekosLifeType" style="color: #00d2d3; font-size: 12px; font-weight: bold; margin-left: 5px;"></span>
+                    <span id="nekosLifeType" style="color: var(--accent-color); font-size: 12px; font-weight: bold; margin-left: 5px;"></span>
                     <label style="margin-left: 10px;">Amount:</label>
                     <input type="number" id="nekosLifeAmount" value="20" style="width: 80px;">
                     <button class="action-btn" onclick="startWorker('nekos_life')">START</button>
@@ -277,7 +171,7 @@
                     <button class="action-btn stop-btn" onclick="stopWorker('safe')">STOP</button>
                 </div>
                 <div class="input-group" style="margin-top: 10px; font-size: 14px; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px;">
-                    <label style="color: #ff9ff3; font-weight: bold; margin-right: 10px;">Format:</label>
+                    <label style="color: var(--accent-color); font-weight: bold; margin-right: 10px;">Format:</label>
                     <select id="safeFormat" style="margin-right: 15px;">
                         <option value="images">Images Only</option>
                         <option value="all">Images & Videos</option>
@@ -301,7 +195,7 @@
                     <button class="action-btn stop-btn" onclick="stopWorker('gelbooru')">STOP</button>
                 </div>
                 <div class="input-group" style="margin-top: 10px; font-size: 14px; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px;">
-                    <label style="color: #ff9ff3; font-weight: bold; margin-right: 10px;">Format:</label>
+                    <label style="color: var(--accent-color); font-weight: bold; margin-right: 10px;">Format:</label>
                     <select id="gelFormat" style="margin-right: 15px;">
                         <option value="images">Images Only</option>
                         <option value="all">Images & Videos</option>
@@ -344,14 +238,14 @@
                     <button class="action-btn stop-btn" onclick="stopWorker('rule34')">STOP</button>
                 </div>
                 <div class="input-group" style="margin-top: 10px; font-size: 14px; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px;">
-                    <label style="color: #ff9ff3; font-weight: bold; margin-right: 10px;">Format:</label>
+                    <label style="color: var(--accent-color); font-weight: bold; margin-right: 10px;">Format:</label>
                     <select id="rule34Format" style="margin-right: 15px;" onchange="toggleGifExclusion('rule34Format', 'exGif')">
                         <option value="images">Images Only</option>
                         <option value="gifs">GIFs Only</option>
                         <option value="all">Images & Videos</option>
                         <option value="videos">Videos Only</option>
                     </select>
-                    <label style="color: #ff9ff3; font-weight: bold; margin-right: 10px;">Exclude:</label>
+                    <label style="color: var(--accent-color); font-weight: bold; margin-right: 10px;">Exclude:</label>
                     <input type="checkbox" id="exGif"> <label for="exGif" style="margin-right: 10px;">GIF</label>
                     <input type="checkbox" id="exComic"> <label for="exComic" style="margin-right: 10px;">Comic</label>
                     <input type="checkbox" id="ex3D"> <label for="ex3D">3D</label>
@@ -393,7 +287,7 @@
                         </div>
 
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 15px;">
-                        <h2 style="color: #ff9ff3;">Downloaded Images Archive</h2>
+                        <h2 style="color: var(--accent-color);">Downloaded Images Archive</h2>
                         <button class="action-btn stop-btn" onclick="clearImageHistory()">Clear Archive</button>
                     </div>
                     <div id="imageHistoryUI" style="display: flex; flex-direction: column; gap: 15px;">
@@ -401,13 +295,13 @@
                 </div>
             </div>
 
-            <div id="ApiSettings" class="tab-content" style="display: none;">
+            <div id="Options" class="tab-content" style="display: none;">
                 <div class="options-scroll">
                     <h2>API & Download Settings</h2>
                     
                     <div style="display: flex; gap: 20px;">
                         <div style="flex: 1; padding: 15px; background: rgba(0,0,0,0.4); border-radius: 8px;">
-                            <p style="color: #ff9ff3; font-weight: bold; margin-bottom: 10px;">Rule34 Credentials</p>
+                            <p style="color: var(--accent-color); font-weight: bold; margin-bottom: 10px;">Rule34 Credentials</p>
                             <div style="display: flex; flex-direction: column; gap: 10px;">
                                 <input type="password" id="r34Key" placeholder="API Key">
                                 <input type="text" id="r34Uid" placeholder="User ID">
@@ -415,7 +309,7 @@
                         </div>
 
                         <div style="flex: 1; padding: 15px; background: rgba(0,0,0,0.4); border-radius: 8px;">
-                            <p style="color: #ff9ff3; font-weight: bold; margin-bottom: 10px;">Gelbooru Credentials</p>
+                            <p style="color: var(--accent-color); font-weight: bold; margin-bottom: 10px;">Gelbooru Credentials</p>
                             <div style="display: flex; flex-direction: column; gap: 10px;">
                                 <input type="password" id="gelKey" placeholder="API Key">
                                 <input type="text" id="gelUid" placeholder="User ID">
@@ -425,11 +319,11 @@
 
                     <div style="margin-top: 15px;">
                         <button class="action-btn" onclick="saveApiSettings()">Save All Keys to .env</button>
-                        <span id="apiSaveStatus" style="margin-left: 10px; color: #00d2d3; font-size: 14px;"></span>
+                        <span id="apiSaveStatus" style="margin-left: 10px; color: var(--title-color); font-size: 14px;"></span>
                     </div>
 
                     <div style="margin-top: 25px; padding: 14px; background: rgba(0,0,0,0.4); border-radius: 8px;">
-                        <p style="color: #00d2d3; font-size: 14px; font-weight: bold; margin-bottom: 12px;">Download Settings</p>
+                        <p style="color: var(--title-color); font-size: 14px; font-weight: bold; margin-bottom: 12px;">Download Settings</p>
                         <div class="input-group" style="flex-wrap: wrap; gap: 15px;">
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <label style="min-width: 120px; font-size: 13px;">API Timeout:</label>
@@ -451,6 +345,80 @@
                         <div style="margin-top: 12px;">
                             <button class="action-btn" onclick="saveDownloadSettings()">Save Download Settings</button>
                             <span id="dlSettingsStatus" style="margin-left: 10px; font-size: 12px; color: gray;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="Customize" class="tab-content" style="display: none;">
+                <div class="options-scroll">
+                    <h2 style="color: var(--title-color);">UI & Theming Engine</h2>
+
+                    <div style="margin-top: 15px; padding: 15px; background: var(--input-bg); border-radius: 8px; border: 1px solid var(--border-color); display: flex; gap: 15px; align-items: center;">
+                        <span style="font-weight: bold; color: var(--text-color);">Theme Mode:</span>
+                        <label><input type="radio" name="themeMode" value="dark" onchange="changeThemeMode(this.value)"> Dark</label>
+                        <label><input type="radio" name="themeMode" value="light" onchange="changeThemeMode(this.value)"> Light</label>
+                        <label><input type="radio" name="themeMode" value="system" onchange="changeThemeMode(this.value)"> System Auto</label>
+                    </div>
+
+                    <div style="display: flex; gap: 20px; margin-top: 20px; align-items: stretch;">
+
+                        <div style="flex: 1; padding: 15px; background: var(--input-bg); border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+                            <h3 style="color: var(--text-color); margin-bottom: 15px; font-size: 15px;">Color Palette</h3>
+
+                            <div class="color-picker-wrapper">
+                                <input type="color" id="color_title" class="color-circle" oninput="updateLiveColor('title', this.value)">
+                                <span style="color: var(--text-color);">Title Text Color</span>
+                            </div>
+                            <div class="color-picker-wrapper">
+                                <input type="color" id="color_text" class="color-circle" oninput="updateLiveColor('text', this.value)">
+                                <span style="color: var(--text-color);">All Text Color</span>
+                            </div>
+                            <div class="color-picker-wrapper">
+                                <input type="color" id="color_accent" class="color-circle" oninput="updateLiveColor('accent', this.value)">
+                                <span style="color: var(--text-color);">Format/Exclude Text Color</span>
+                            </div>
+                            <div class="color-picker-wrapper">
+                                <input type="color" id="color_tab_text" class="color-circle" oninput="updateLiveColor('tab_text', this.value)">
+                                <span style="color: var(--text-color);">Top Tab Names Color</span>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                                    <input type="color" id="color_btn_start_bg" class="color-circle" oninput="updateLiveColor('btn_start_bg', this.value)">
+                                    <span style="font-size: 11px; color: var(--text-color);">Start Btn</span>
+                                </div>
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                                    <input type="color" id="color_btn_start_text" class="color-circle" oninput="updateLiveColor('btn_start_text', this.value)">
+                                    <span style="font-size: 11px; color: var(--text-color);">Start Text</span>
+                                </div>
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                                    <input type="color" id="color_btn_stop_bg" class="color-circle" oninput="updateLiveColor('btn_stop_bg', this.value)">
+                                    <span style="font-size: 11px; color: var(--text-color);">Stop Btn</span>
+                                </div>
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                                    <input type="color" id="color_btn_stop_text" class="color-circle" oninput="updateLiveColor('btn_stop_text', this.value)">
+                                    <span style="font-size: 11px; color: var(--text-color);">Stop Text</span>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: auto; padding-top: 25px; display: flex; gap: 10px; align-items: center;">
+                                <button class="action-btn" onclick="saveColors()" style="padding: 6px 12px; font-size: 11px;">Save Colors</button>
+                                <button class="action-btn stop-btn" onclick="resetColors()" style="padding: 6px 12px; font-size: 11px;">Reset Colors</button>
+                                <span id="colorSaveStatus" style="font-size: 12px; color: var(--title-color);"></span>
+                            </div>
+                        </div>
+
+                        <div style="flex: 1.2; padding: 15px; background: var(--input-bg); border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+                            <h3 style="color: var(--text-color); margin-bottom: 15px; font-size: 15px;">Wallpapers</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-height: 250px; overflow-y: auto; padding-right: 5px;" class="options-scroll" id="wpGridUI">
+                                </div>
+
+                            <div style="margin-top: auto; padding-top: 20px; display: flex; gap: 10px; align-items: center;">
+                                <button class="action-btn" onclick="saveWallpapersUI()" style="padding: 6px 12px; font-size: 11px;">Save Wallpapers</button>
+                                <button class="action-btn stop-btn" onclick="resetWallpapersUI()" style="padding: 6px 12px; font-size: 11px;">Reset Wallpapers</button>
+                                <span id="wpSaveStatusUI" style="font-size: 12px; color: var(--title-color);"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
