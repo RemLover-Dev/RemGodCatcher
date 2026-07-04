@@ -45,7 +45,7 @@ def worker_rule34(tag, amount, method, sort_type, sort_order, exclusions, net_co
     dl_history = load_history(site_root)
 
     clean_folder_name = " ".join([t for t in tag_list if not t.startswith('-')])
-    safe_tag_dir = re.sub(r'[\\/*?:"<>|~]', "", clean_folder_name).strip().replace(' ', '_')
+    safe_tag_dir = re.sub(r'[\\/*?:"<>|~]', "", clean_folder_name).strip()
     if not safe_tag_dir: safe_tag_dir = "mixed_tags"
 
     tag_dir = os.path.join(site_root, safe_tag_dir)

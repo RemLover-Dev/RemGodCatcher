@@ -21,6 +21,10 @@ def worker_yande(tag, amount, rating, net_config):
     anti_ban_pause = float(net_config.get("anti_ban_pause", 3.0))
     dl_retries = int(net_config.get("download_retries", 3))
     tag = tag.strip().lower()
+
+    # Save original tag for folder naming (without rating filter)
+    original_tag = tag
+
     if rating:
         tag = (tag + " " + rating).strip()
     log_msg(name, f"Initializing worker for tag: '{tag}'")
@@ -30,8 +34,8 @@ def worker_yande(tag, amount, rating, net_config):
     dl_history = load_history(site_root)
     session = get_session("yande", net_config)
 
-    clean_tag = " ".join(t for t in tag.split() if not t.startswith('-'))
-    safe_tag = re.sub(r'[\\/*?:"<>|]', "", clean_tag).replace(' ', '_')
+    clean_tag = " ".join(t for t in original_tag.split() if not t.startswith('-'))
+    safe_tag = re.sub(r'[\\/*?:"<>|]', "", clean_tag)
     tag_dir = os.path.join(site_root, safe_tag)
     os.makedirs(tag_dir, exist_ok=True)
 
@@ -88,8 +92,6 @@ def worker_yande(tag, amount, rating, net_config):
             post_rating = post.get("rating", "")
             rating_map = {"s": "Safe", "q": "Moderate", "e": "NSFW"}
             rating_label = rating_map.get(post_rating, "Unknown")
-            dl_dir = os.path.join(tag_dir, rating_label)
-            os.makedirs(dl_dir, exist_ok=True)
 
             if rating:
                 filter_rating = rating.split(":")[-1]
@@ -105,7 +107,11 @@ def worker_yande(tag, amount, rating, net_config):
                 continue
 
             filename = f"{post.get('id')}.{ext}"
-            filepath = os.path.join(dl_dir, filename)
+            
+            # Save only to rating subfolder
+            rating_dir = os.path.join(tag_dir, rating_label)
+            os.makedirs(rating_dir, exist_ok=True)
+            filepath = os.path.join(rating_dir, filename)
 
             if filename in dl_history or os.path.exists(filepath):
                 continue

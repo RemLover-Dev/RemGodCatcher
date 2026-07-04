@@ -23,7 +23,7 @@ def worker_safebooru(tag, amount, exclusions, net_config):
     session = get_session("safe", net_config)
 
     clean_tag = " ".join(t for t in tag.split() if not t.startswith('-'))
-    safe_tag = re.sub(r'[\\/*?:"<>|]', "", clean_tag).replace(' ', '_')
+    safe_tag = re.sub(r'[\\/*?:"<>|]', "", clean_tag)
     tag_dir = os.path.join(site_root, safe_tag)
     os.makedirs(tag_dir, exist_ok=True)
 
