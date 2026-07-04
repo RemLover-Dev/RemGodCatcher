@@ -120,7 +120,7 @@ function updateBackground(tabName) {
     if (!wp) return;
     let filename = wp[currentActiveTheme] || wp['dark'];
     if (filename) {
-        document.body.style.backgroundImage = `url('wallpaper/${filename}')`;
+        document.body.style.backgroundImage = `url('user_wallpapers/${filename}')`;
     }
 }
 
