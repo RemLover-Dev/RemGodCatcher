@@ -35,6 +35,8 @@ function applyRenderTheme(themeStr) {
     updateLiveColor('text', colors.text, false);
     updateLiveColor('accent', colors.accent, false);
     updateLiveColor('tab_text', colors.tab_text, false);
+    updateLiveColor('tab_hover_bg', colors.tab_hover_bg, false);
+    updateLiveColor('tab_active_bg', colors.tab_active_bg, false);
     updateLiveColor('btn_start_bg', colors.btn_start_bg, false);
     updateLiveColor('btn_start_text', colors.btn_start_text, false);
     updateLiveColor('btn_stop_bg', colors.btn_stop_bg, false);
@@ -140,6 +142,7 @@ async function resetColors() {
     uiConfig.colors = {
         "dark": {
             "title": "#00d2d3", "text": "#ffffff", "accent": "#ff9ff3", "tab_text": "#ffffff",
+            "tab_hover_bg": "rgba(255, 255, 255, 0.15)", "tab_active_bg": "rgba(0, 210, 211, 0.3)",
             "btn_start_bg": "#00d2d3", "btn_start_text": "#0a0a0a",
             "btn_stop_bg": "#ff9ff3", "btn_stop_text": "#1a0a1a"
         },
@@ -148,6 +151,7 @@ async function resetColors() {
             "text": "#1a1a2e",
             "accent": "#a0008a",
             "tab_text": "#1a1a2e",
+            "tab_hover_bg": "rgba(0, 0, 0, 0.05)", "tab_active_bg": "rgba(0, 122, 122, 0.12)",
             "btn_start_bg": "#004d4d", "btn_start_text": "#ffffff",
             "btn_stop_bg": "#a0008a", "btn_stop_text": "#ffffff"
         }
@@ -339,11 +343,23 @@ function openTab(tabName, btn) {
     updateBackground(tabName);
 }
 
+function clearLog(tabID) {
+    let boxMap = {
+        "main": "consoleLog_main", "neko": "consoleLog_neko", "nekos_life": "consoleLog_nekos_life",
+        "zero": "consoleLog_zero", "waifu": "consoleLog_waifu", "safe": "consoleLog_safe",
+        "rule34": "consoleLog_rule34", "gelbooru": "consoleLog_gelbooru", "yande": "consoleLog_yande",
+        "kona": "consoleLog_kona"
+    };
+    let cb = document.getElementById(boxMap[tabID.toLowerCase()] || "consoleLog_main");
+    if (cb) cb.innerHTML = "";
+}
+
 function logToConsole(tabID, msg) {
     let boxMap = {
         "main": "consoleLog_main", "neko": "consoleLog_neko", "nekos_life": "consoleLog_nekos_life",
         "zero": "consoleLog_zero", "waifu": "consoleLog_waifu", "safe": "consoleLog_safe",
-        "rule34": "consoleLog_rule34", "gelbooru": "consoleLog_gelbooru", "yande": "consoleLog_yande"
+        "rule34": "consoleLog_rule34", "gelbooru": "consoleLog_gelbooru", "yande": "consoleLog_yande",
+        "kona": "consoleLog_kona"
     };
     let cb = document.getElementById(boxMap[tabID.toLowerCase()] || "consoleLog_main");
     if (cb) {
@@ -404,6 +420,21 @@ function startWorker(workerName) {
         payload.tag = document.getElementById('yandeTag').value;
         payload.limit = document.getElementById('yandeLimit').value;
         payload.rating = document.getElementById('yandeRating').value;
+
+    } else if (workerName === 'kona') {
+        payload.tag = document.getElementById('konaTag').value;
+        payload.limit = document.getElementById('konaLimit').value;
+        payload.rating = document.getElementById('konaRating').value;
+
+        let format = document.getElementById('konaFormat').value;
+        let ex = [];
+        if (format === 'images') ex.push('-video');
+        else if (format === 'videos') {
+            ex.push('-image');
+            payload.tag += " video";
+        }
+        if (document.getElementById('konaExGif').checked) ex.push('-gif');
+        payload.exclusions = ex;
 
     } else if (workerName === 'rule34') {
         payload.tag = document.getElementById('rule34Tag').value;
@@ -520,6 +551,19 @@ async function fetchYande(val) {
         let resp = await fetch("/api/tags/yande", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: lastWord }) });
         let tags = await resp.json();
         let dl = document.getElementById("yandeList");
+        let dHtml = "";
+        tags.forEach(t => dHtml += `<option value="${words.slice(0,-1).join(" ") + (words.length>1?" ":"") + t}">`);
+        dl.innerHTML = dHtml;
+    } catch(e) {}
+}
+
+async function fetchKona(val) {
+    if (val.length < 2) return;
+    let words = val.split(" "); let lastWord = words[words.length - 1]; if(lastWord.length < 2) return;
+    try {
+        let resp = await fetch("/api/tags/kona", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: lastWord }) });
+        let tags = await resp.json();
+        let dl = document.getElementById("konaList");
         let dHtml = "";
         tags.forEach(t => dHtml += `<option value="${words.slice(0,-1).join(" ") + (words.length>1?" ":"") + t}">`);
         dl.innerHTML = dHtml;
@@ -658,6 +702,7 @@ function jumpToSite(site, tag) {
         "safe":      { tab: "Safe",     input: "safeTag" },
         "gelbooru":  { tab: "Gelbooru", input: "gelbooruTag" },
         "yande":     { tab: "Yande",    input: "yandeTag" },
+        "kona":      { tab: "Kona",     input: "konaTag" },
         "rule34":    { tab: "Rule34",    input: "rule34Tag" }
     };
     let mapping = siteMap[site] || { tab: "Safe", input: "safeTag" };
@@ -715,13 +760,7 @@ function renderImageHistory() {
 }
 
 async function addFavoriteFromImage(site, tag) {
-    if(isFavorite(site, tag)) return;
-
-    await fetch("/api/favorites", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ site: site, tag: tag, action: "add" })
-    });
-    await loadTagsData();
+    await toggleFavorite(site, tag);
 }
 
 async function removeImageHistory(filename) {

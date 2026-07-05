@@ -34,7 +34,7 @@ def worker_zerochan(tag, amount, net_config):
         pass
 
     clean_tag = " ".join(t for t in tag.split() if not t.startswith('-'))
-    safe_tag = re.sub(r'[\\/*?:"<>|]', "", clean_tag)
+    safe_tag = re.sub(r'[\\/*?"<>|]', "", clean_tag)
     tag_dir = os.path.join(site_root, safe_tag)
     os.makedirs(tag_dir, exist_ok=True)
     encoded_tag = urllib.parse.quote_plus(tag)

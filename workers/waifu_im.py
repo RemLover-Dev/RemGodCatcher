@@ -32,7 +32,7 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
     dl_history = load_history(site_root)
 
     clean_tag = " ".join(t for t in tag.split() if not t.startswith('-'))
-    safe_tag = re.sub(r'[\\/*?:"<>|]', "", clean_tag)
+    safe_tag = re.sub(r'[\\/*?"<>|]', "", clean_tag)
     tag_dir = os.path.join(site_root, "nsfw_" + safe_tag if is_nsfw else safe_tag)
     os.makedirs(tag_dir, exist_ok=True)
     session = get_session("waifu", net_config)

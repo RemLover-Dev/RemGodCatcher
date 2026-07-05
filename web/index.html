@@ -21,6 +21,7 @@
             <button class="tab-btn" onclick="openTab('Gelbooru', this)">Gelbooru</button>
             <button class="tab-btn" onclick="openTab('Rule34', this)">Rule34</button>
             <button class="tab-btn" onclick="openTab('Yande', this)">Yande.re</button>
+            <button class="tab-btn" onclick="openTab('Kona', this)">Konachan</button>
             <button class="tab-btn" onclick="openTab('History', this)">History</button>
             <button class="tab-btn" onclick="openTab('Options', this)">Options</button>
             <button class="tab-btn" onclick="openTab('Customize', this)">Customize</button>
@@ -55,6 +56,7 @@
                     </div>
 
                     <div class="console-wrapper" style="min-height: 120px;">
+                        <button class="clear-log-btn" onclick="clearLog('main')">Clear</button>
                         <pre id="consoleLog_main"></pre>
                     </div>
                 </div>
@@ -76,6 +78,7 @@
                     <button class="action-btn stop-btn" onclick="stopWorker('neko')">STOP</button>
                 </div>
                 <div class="console-wrapper">
+                    <button class="clear-log-btn" onclick="clearLog('neko')">Clear</button>
                     <pre id="consoleLog_neko"></pre>
                 </div>
             </div>
@@ -122,6 +125,7 @@
                     <button class="action-btn stop-btn" onclick="stopWorker('nekos_life')">STOP</button>
                 </div>
                 <div class="console-wrapper">
+                    <button class="clear-log-btn" onclick="clearLog('nekos_life')">Clear</button>
                     <pre id="consoleLog_nekos_life"></pre>
                 </div>
             </div>
@@ -138,6 +142,7 @@
                     <button class="action-btn stop-btn" onclick="stopWorker('zero')">STOP</button>
                 </div>
                 <div class="console-wrapper">
+                    <button class="clear-log-btn" onclick="clearLog('zero')">Clear</button>
                     <pre id="consoleLog_zero"></pre>
                 </div>
             </div>
@@ -155,6 +160,7 @@
                     <button class="action-btn stop-btn" onclick="stopWorker('waifu')">STOP</button>
                 </div>
                 <div class="console-wrapper">
+                    <button class="clear-log-btn" onclick="clearLog('waifu')">Clear</button>
                     <pre id="consoleLog_waifu"></pre>
                 </div>
             </div>
@@ -179,6 +185,7 @@
                     </select>
                 </div>
                 <div class="console-wrapper">
+                    <button class="clear-log-btn" onclick="clearLog('safe')">Clear</button>
                     <pre id="consoleLog_safe"></pre>
                 </div>
             </div>
@@ -204,6 +211,7 @@
                     <input type="checkbox" id="gelNoAI"> <label for="gelNoAI">Exclude AI</label>
                 </div>
                 <div class="console-wrapper">
+                    <button class="clear-log-btn" onclick="clearLog('gelbooru')">Clear</button>
                     <pre id="consoleLog_gelbooru"></pre>
                 </div>
             </div>
@@ -251,6 +259,7 @@
                     <input type="checkbox" id="ex3D"> <label for="ex3D">3D</label>
                 </div>
                 <div class="console-wrapper">
+                    <button class="clear-log-btn" onclick="clearLog('rule34')">Clear</button>
                     <pre id="consoleLog_rule34"></pre>
                 </div>
             </div>
@@ -273,7 +282,40 @@
                     <button class="action-btn stop-btn" onclick="stopWorker('yande')">STOP</button>
                 </div>
                 <div class="console-wrapper">
+                    <button class="clear-log-btn" onclick="clearLog('yande')">Clear</button>
                     <pre id="consoleLog_yande"></pre>
+                </div>
+            </div>
+
+            <div id="Kona" class="tab-content" style="display: none;">
+                <h2>Konachan Downloader</h2>
+                <div class="input-group">
+                    <label>Tags:</label>
+                    <input type="text" id="konaTag" list="konaList" oninput="fetchKona(this.value)" placeholder="e.g. rem blue_hair">
+                    <datalist id="konaList"></datalist>
+                    <label>Limit:</label>
+                    <input type="number" id="konaLimit" value="50" style="width: 80px;">
+                    <select id="konaRating" style="width: 110px;">
+                        <option value="">All Ratings</option>
+                        <option value="rating:s">Safe</option>
+                        <option value="rating:q">Moderate</option>
+                        <option value="rating:e">NSFW</option>
+                    </select>
+                    <button class="action-btn" onclick="startWorker('kona')">START</button>
+                    <button class="action-btn stop-btn" onclick="stopWorker('kona')">STOP</button>
+                </div>
+                <div class="input-group" style="margin-top: 10px; font-size: 14px; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px;">
+                    <label style="color: var(--accent-color); font-weight: bold; margin-right: 10px;">Format:</label>
+                    <select id="konaFormat" style="margin-right: 15px;">
+                        <option value="images">Images Only</option>
+                        <option value="all">Images & Videos</option>
+                        <option value="videos">Videos Only</option>
+                    </select>
+                    <input type="checkbox" id="konaExGif"> <label for="konaExGif">Exclude GIF</label>
+                </div>
+                <div class="console-wrapper">
+                    <button class="clear-log-btn" onclick="clearLog('kona')">Clear</button>
+                    <pre id="consoleLog_kona"></pre>
                 </div>
             </div>
 
@@ -381,6 +423,14 @@
                             <div class="color-picker-wrapper">
                                 <input type="color" id="color_tab_text" class="color-circle" oninput="updateLiveColor('tab_text', this.value)">
                                 <span style="color: var(--text-color);">Top Tab Names Color</span>
+                            </div>
+                            <div class="color-picker-wrapper">
+                                <input type="color" id="color_tab_hover_bg" class="color-circle" oninput="updateLiveColor('tab_hover_bg', this.value)">
+                                <span style="color: var(--text-color);">Tab Hover Background</span>
+                            </div>
+                            <div class="color-picker-wrapper">
+                                <input type="color" id="color_tab_active_bg" class="color-circle" oninput="updateLiveColor('tab_active_bg', this.value)">
+                                <span style="color: var(--text-color);">Tab Active Background</span>
                             </div>
 
                             <div style="display: flex; justify-content: space-between; margin-top: 20px;">

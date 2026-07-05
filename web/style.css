@@ -19,6 +19,7 @@
     --border-color: rgba(255, 255, 255, 0.2);
     --tab-hover: rgba(255, 255, 255, 0.15);
     --tab-active-bg: rgba(0, 210, 211, 0.3);
+    --tab-hover-bg: rgba(255, 255, 255, 0.15);
 
     --text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
 }
@@ -28,6 +29,7 @@
     --input-bg: rgba(255, 255, 255, 0.6);
     --border-color: rgba(0, 0, 0, 0.15);
     --tab-hover: rgba(0, 0, 0, 0.05);
+    --tab-hover-bg: rgba(0, 0, 0, 0.05);
     --tab-active-bg: rgba(0, 122, 122, 0.12);
     --title-color: #004d4d;
     --accent-color: #a0008a;
@@ -153,14 +155,17 @@ h2 {
 }
 
 .tab-btn:hover {
-    background: var(--tab-hover);
-}
+    background: var(--tab-hover-bg);
 }
 
 .tab-btn.active {
     background: var(--tab-active-bg);
     color: var(--title-color);
     font-weight: 600;
+}
+
+.tab-btn.active:hover {
+    background: var(--tab-active-bg);
 }
 
 /* ===== TAB CONTAINER ===== */
@@ -244,6 +249,28 @@ input::placeholder {
     box-shadow: 0 4px 12px rgba(255, 159, 243, 0.3);
 }
 
+/* ===== CLEAR LOG BUTTON ===== */
+.clear-log-btn {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-color);
+    padding: 2px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: 'Source Code Pro', monospace;
+    z-index: 2;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.clear-log-btn:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.2);
+}
+
 /* ===== CONSOLE / LOG ===== */
 .console-wrapper {
     flex: 1;
@@ -253,6 +280,7 @@ input::placeholder {
     border: 1px solid rgba(0, 210, 211, 0.2);
     overflow: hidden;
     margin-top: 12px;
+    position: relative;
 }
 
 .console-wrapper pre {

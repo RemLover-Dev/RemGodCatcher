@@ -37,10 +37,12 @@ from workers.nekos_best import worker_nekos_best
 from workers.gelbooru import worker_gelbooru
 from workers.nekos_life import worker_nekos_life
 from workers.yande import worker_yande
+from workers.konachan import worker_konachan
 
 STOP_EVENTS = {}
 SAFE_TAGS_DB = []
 YANDE_TAGS_DB = []
+KONA_TAGS_DB = []
 WAIFU_TAGS_DB = []
 WAIFU_TAG_MAP = {}
 MASTER_FOLDER = os.path.join(BASE_DIR, "Rem God")
@@ -147,6 +149,14 @@ def load_yande_db():
     if os.path.exists(db_path):
         try:
             with open(db_path, "r", encoding="utf-8") as f: YANDE_TAGS_DB = json.load(f)
+        except Exception: pass
+
+def load_kona_db():
+    global KONA_TAGS_DB
+    db_path = os.path.join(DATABASE_DIR, "kona_tag_names.json")
+    if os.path.exists(db_path):
+        try:
+            with open(db_path, "r", encoding="utf-8") as f: KONA_TAGS_DB = json.load(f)
         except Exception: pass
 
 @app.route("/")
@@ -331,6 +341,12 @@ def get_yande_suggestions():
     if not YANDE_TAGS_DB: return jsonify([])
     return jsonify([t for t in YANDE_TAGS_DB if t.startswith(query)][:50])
 
+@app.route("/api/tags/kona", methods=["POST"])
+def get_kona_suggestions():
+    query = request.json.get("query", "").lower()
+    if not KONA_TAGS_DB: return jsonify([])
+    return jsonify([t for t in KONA_TAGS_DB if t.startswith(query)][:50])
+
 # --- TAG HISTORY & FAVORITES API ---
 TAG_HISTORY_FILE = os.path.join(DATABASE_DIR, "tag_history.json")
 FAV_TAGS_FILE = os.path.join(DATABASE_DIR, "fav_tags.json")
@@ -406,6 +422,7 @@ def manage_ui_config():
             "Gelbooru": {"dark": "Rem_gelbooru_d.png", "light": "Rem_gelbooru_l.png"},
             "Rule34": {"dark": "Rem_rule34_d.png", "light": "Rem_rule34_l.png"},
             "Yande": {"dark": "Rem_yande_d.png", "light": "Rem_yande_l.png"},
+            "Kona": {"dark": "Rem_kona_d.png", "light": "Rem_kona_l.png"},
             "History": {"dark": "Rem_history_d.png", "light": "Rem_history_l.png"},
             "Options": {"dark": "Rem_option_d.png", "light": "Rem_option_l.png"},
             "Customize": {"dark": "Rem_custom_d.png", "light": "Rem_custom_l.png"}
@@ -488,6 +505,7 @@ def handle_start_worker(data):
     elif worker == "gelbooru": threading.Thread(target=worker_gelbooru, args=(data.get("tag", ""), int(data.get("limit", 50)), data.get("exclusions", []), net_config), daemon=True).start()
     elif worker == "nekos_life": threading.Thread(target=worker_nekos_life, args=(data.get("category", ""), int(data.get("limit", 20)), net_config), daemon=True).start()
     elif worker == "yande": threading.Thread(target=worker_yande, args=(data.get("tag", ""), int(data.get("limit", 50)), data.get("rating", ""), net_config), daemon=True).start()
+    elif worker == "kona": threading.Thread(target=worker_konachan, args=(data.get("tag", ""), int(data.get("limit", 50)), data.get("rating", ""), data.get("exclusions", []), net_config), daemon=True).start()
 
 @socketio.on("stop_worker")
 def handle_stop_worker(data):
@@ -499,6 +517,7 @@ if __name__ == "__main__":
     load_safe_db()
     load_waifu_tags()
     load_yande_db()
+    load_kona_db()
     port = 5000
     url = f"http://127.0.0.1:{port}"
     print(f"Starting Rem God Catcher Web UI on {url} ...")

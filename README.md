@@ -4,7 +4,7 @@
 
 **A modern, cross-platform image & video downloader with a glass-morphism web UI.**
 
-Supports Rule34, Safebooru, Gelbooru, Zerochan, Waifu.im, Nekos.best, Nekos.life, and Yande.re with real-time logging, a built-in discovery engine, advanced tag filtering, and anti-ban protections.
+Supports Rule34, Safebooru, Gelbooru, Zerochan, Waifu.im, Nekos.best, Nekos.life, Yande.re, and Konachan with real-time logging, a built-in discovery engine, advanced tag filtering, and anti-ban protections.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-yellow.svg)](https://python.org)
@@ -19,18 +19,19 @@ Supports Rule34, Safebooru, Gelbooru, Zerochan, Waifu.im, Nekos.best, Nekos.life
 
 ## Features
 
-- **Multi-Platform** -- Built-in modules for 8 imageboard APIs
+- **Multi-Platform** -- Built-in modules for 9 imageboard APIs
 - **Modern Web UI** -- Glass-morphism dark & light themes, opens in your default browser
 - **Discovery Engine & Archives** -- Live extraction of tags and artists from downloaded media, displayed in a dedicated Image Archive tab.
 - **Favorites & Search History** -- Add tags to your favorites list for one-click search automation, and maintain a log of your search history.
 - **Video & GIF Support** -- Exclusively target `.mp4`, `.webm`, or GIF files via format filtering.
 - **GIFs Only Filter** -- Rule34 supports a dedicated GIFs Only mode alongside Images/Videos/All.
-- **Real-Time Logs** -- Live console output via WebSocket (Socket.IO)
+- **Real-Time Logs** -- Live console output via WebSocket (Socket.IO) with per-tab clear button
+- **Full UI Customization** -- Custom colors for text, accents, buttons, and tab backgrounds; per-tab wallpapers with dark/light mode
 - **Advanced Search** -- AND/OR tag queries, exclusions (`-video`, `-image`), custom sorting, category-based browsing
 - **Anti-Ban Engine** -- Tactical delays, retry loops, rate-limit handling
 - **Proxy Support** -- Full proxy configuration from the UI (v2rayN, Clash, etc.)
 - **API Key Management** -- Manage Rule34 credentials directly from the Web UI
-- **Tag Auto-Suggest** -- Live autocomplete for all platforms
+- **Tag Auto-Suggest** -- Live autocomplete for all platforms including offline Konachan tag DB
 - **Persistent Settings** -- Proxy, API keys, and download settings saved in `.env`
 
 ---
@@ -86,6 +87,7 @@ Rem God Catcher/
 ├── database/               # Tag databases & user data
 │   ├── safe_tag_names.json     # Safebooru offline tag database
 │   ├── yande_tag_names.json    # Yande.re offline tag database
+│   ├── kona_tag_names.json     # Konachan offline tag database (82k+ tags)
 │   ├── tag_history.json        # Search history database (git-ignored)
 │   ├── fav_tags.json           # User favorites database (git-ignored)
 │   ├── image_history.json      # Per-image tag archive (git-ignored)
@@ -118,6 +120,7 @@ Rem God Catcher/
 | **Nekos.best** | Category-based (PNG / GIF) | No | Multiple format support |
 | **Nekos.life** | Category-based with type indicators (GIF/Static/Mixed) | Yes | Animated neko, hug, pat, cuddle, and more |
 | **Yande.re** | Full tag search, rating filter, artist extraction, local tag DB | Yes | Moebooru API, images only, sorts into Safe/Moderate/NSFW folders |
+| **Konachan** | Full tag search, rating filter, artist extraction, local tag DB, video/GIF format filtering | Yes | Moebooru API, sorts into Safe/Moderate/Explicit folders |
 
 ---
 
