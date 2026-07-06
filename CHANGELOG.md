@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [4.1.0] - The Collect-Then-Download Rewrite - 2026-07-06
+
+### Added
+- **Two-Phase Download Engine** -- All 9 workers now follow a clean collect-then-download pattern: scan API pages to collect qualifying image metadata first, then download everything in a single pass. No more interleaved scanning and downloading competing for the event loop.
+- **Zerochan Per-Post Detail Fallback** -- New `_derive_img_url()` helper tries 7 key names (`full`, `large`, `file_url`, `source`, `src`, `url`, `image`) with thumbnail-to-full derivation as fallback, plus diagnostic key logging when no URL is found.
+- **Download History Logging** -- Skipped files (already downloaded) are now logged with a clear message instead of silently passing.
+
+### Changed
+- **All Workers** -- Collection phase now gathers URL, filename, and tags directly from list API responses where possible (Safebooru, Gelbooru, Konachan, Yande.re, Zerochan, Waifu.im, Nekos.best, Rule34). Download phase uses these pre-collected values without additional API calls.
+- **Zerochan** -- Removed slow initial tag-redirect check (was causing 20-second startup delay). Tag auto-redirect now handled by the list API itself.
+- **Zerochan** -- Anti-ban pause now only applies to pages that yielded valid new posts, not after empty pages.
+- **Nekos.life & Rule34** -- Download-to-download delay now uses the user-configured anti-ban pause setting instead of hardcoded `random.uniform(0.3, 1.2)` / `random.uniform(0.6, 1.2)`.
+- **Konachan & Safebooru Tag Databases** -- Cleaned up empty entries; fresh pull for Safebooru (178k+ tags).
+
+### Fixed
+- **Nekos Life Console Rendering** -- Removed duplicate `<pre>` element that had the same ID as the correct `<div class="console-log">`, causing `getElementById` to return the unstyled `<pre>` and display "big white text".
+- **Zerochan Silent Skip** -- When a post's detail API returned no usable image URL, the worker silently continued without logging. Now logs the available keys and skips with a diagnostic message.
+- **Zerochan URL-Encoded Filenames** -- Filenames extracted from image URLs are now `urllib.parse.unquote()`-decoded (e.g., `Kafka.%28Honkai.Star.Rail%29` → `Kafka.(Honkai.Star.Rail)`).
+- **Zerochan Tag Parsing** -- Tags are now split on whitespace (Zerochan uses space-separated tags) instead of commas.
+- **Nekos Life Extra Cooldowns** -- Removed `time.sleep(0.5)` and `time.sleep(random.uniform(0.3, 1.2))` in format-mismatch and history-match rejection paths, so the anti-ban pause is the only delay between iterations.
+
+---
+
 ## [4.0.0] - Rem 4: The Theme & Visual Harmony Update - 2026-07-04
 
 ### Added
