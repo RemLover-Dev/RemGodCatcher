@@ -247,11 +247,14 @@ window.onload = async function () {
             body: JSON.stringify(globalNetConfig)
         });
         let waifuTags = await resp.json();
-        let wl = document.getElementById("waifuList");
-        let wHtml = "";
-        waifuTags.forEach(t => wHtml += `<option value="${t}">`);
-        wl.innerHTML = wHtml;
-        if (waifuTags.length > 0) document.getElementById("waifuTag").value = waifuTags[0];
+        let sel = document.getElementById("waifuTag");
+        sel.innerHTML = "";
+        waifuTags.forEach(t => {
+            let opt = document.createElement("option");
+            opt.value = t;
+            opt.textContent = t;
+            sel.appendChild(opt);
+        });
     } catch (e) {}
 
     await loadTagsData();
@@ -295,19 +298,33 @@ function updateNekosLifeType() {
     
     let cat = document.getElementById("nekosLifeCat").value;
     let typeEl = document.getElementById("nekosLifeType");
+    let formatLabel = document.getElementById("nekosLifeFormatLabel");
+    let formatSelect = document.getElementById("nekosLifeFormat");
     
     if (gifOnly.includes(cat)) {
         typeEl.textContent = "[GIF]";
         typeEl.style.color = "var(--accent-color)";
+        formatLabel.style.display = "none";
+        formatSelect.style.display = "none";
     } else if (staticOnly.includes(cat)) {
         typeEl.textContent = "[STATIC]";
         typeEl.style.color = "#00d2d3";
+        formatLabel.style.display = "none";
+        formatSelect.style.display = "none";
     } else if (mixed.includes(cat)) {
         typeEl.textContent = "[MIXED]";
         typeEl.style.color = "#ffd93d";
+        formatLabel.style.display = "";
+        formatSelect.style.display = "";
     } else {
         typeEl.textContent = "";
+        formatLabel.style.display = "none";
+        formatSelect.style.display = "none";
     }
+}
+
+function updateNekosLifeFormatHint() {
+    // Optional: add hint text based on format selection
 }
 
 async function saveProxySettings() {
@@ -389,18 +406,15 @@ function startWorker(workerName) {
     } else if (workerName === 'nekos_life') {
         payload.category = document.getElementById('nekosLifeCat').value;
         payload.limit = document.getElementById('nekosLifeAmount').value;
+        // Add format parameter for Mixed categories
+        const mixed = ["goose", "wallpaper", "lizard", "span"];
+        if (mixed.includes(payload.category)) {
+            payload.format = document.getElementById('nekosLifeFormat').value;
+        }
     } else if (workerName === 'safe') {
         payload.tag = document.getElementById('safeTag').value;
         payload.limit = document.getElementById('safeLimit').value;
-        
-        let format = document.getElementById('safeFormat').value;
-        let ex = [];
-        if (format === 'images') ex.push('-video');
-        else if (format === 'videos') {
-            ex.push('-image');
-            payload.tag += " video";
-        }
-        payload.exclusions = ex;
+        payload.exclusions = [];
 
     } else if (workerName === 'gelbooru') {
         payload.tag = document.getElementById('gelbooruTag').value;

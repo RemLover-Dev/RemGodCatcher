@@ -1,9 +1,4 @@
-import os
-import time
-import threading
-import random
-import re
-
+import os, time, threading, random, re
 from shared import log_msg, STOP_EVENTS, load_history, save_history, get_session
 import shared
 
@@ -37,14 +32,16 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
     os.makedirs(tag_dir, exist_ok=True)
     session = get_session("waifu", net_config)
 
-    downloaded = 0
-    while not stop_event.is_set() and (amount == 0 or downloaded < amount):
-        params = {"IncludedTags": slug}
+    collected = []
+    page = 1
+
+    while not stop_event.is_set() and (amount == 0 or len(collected) < amount):
+        params = {"IncludedTags": slug, "page": page}
         if is_nsfw:
             params["IsNsfw"] = "true"
 
         try:
-            log_msg(name, "Scanning API...")
+            log_msg(name, f"Scanning API... (Page {page})")
             resp = session.get("https://api.waifu.im/images", params=params, timeout=api_timeout)
             if resp.status_code == 404:
                 log_msg(name, "ERROR 404: Tag not found!")
@@ -53,17 +50,16 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
                 log_msg(name, "ERROR 403: Adult tag detected. Check NSFW box.")
                 break
             resp.raise_for_status()
-            
+
             data = resp.json()
             items = data.get("items", [])
             total = data.get("totalCount", 0)
-            
+
             if not items or total == 0:
                 if is_nsfw:
-                    log_msg(name, f"No NSFW images found for '{tag}'. Tag may not exist on Waifu.im.")
-                    log_msg(name, "Available NSFW tags: ero, ecchi, hentai, milf, oppai, oral, ass, paizuri")
+                    log_msg(name, f"No NSFW images found for '{tag}'.")
                 else:
-                    log_msg(name, f"No images found for '{tag}'. Tag may not exist on Waifu.im.")
+                    log_msg(name, f"No images found for '{tag}'.")
                 break
         except Exception as e:
             log_msg(name, f"API Error: {e}. Retrying in {retry_wait}s...")
@@ -71,45 +67,66 @@ def worker_waifu(tag, amount, is_nsfw, net_config):
             continue
 
         for img in items:
-            if stop_event.is_set() or (amount > 0 and downloaded >= amount): break
+            if stop_event.is_set() or (amount > 0 and len(collected) >= amount): break
             url = img.get("url")
             if not url: continue
 
             filename = url.split('/')[-1]
-            filepath = os.path.join(tag_dir, filename)
-
-            if filename in dl_history or os.path.exists(filepath): continue
-
-            success = False
-            for dl_attempt in range(dl_retries):
-                try:
-                    r = session.get(url, stream=True, timeout=api_timeout)
-                    r.raise_for_status()
-                    with open(filepath, 'wb') as f:
-                        for chunk in r.iter_content(8192):
-                            if stop_event.is_set(): break
-                            f.write(chunk)
-                    if stop_event.is_set():
-                        os.remove(filepath)
-                        break
-
-                    downloaded += 1
-                    dl_history.add(filename)
-                    save_history(site_root, dl_history)
-
-                    log_msg(name, f"[SUCCESS] Downloaded {filename} ({downloaded}/{amount})")
-                    success = True
-                    break
-                except Exception as e:
-                    if dl_attempt < 2:
-                        log_msg(name, f"[RETRY {dl_attempt+1}/{dl_retries}] {filename}: {e}")
-                        time.sleep(2)
-                    else:
-                        log_msg(name, f"[FAILED] {filename}: {e}")
-            if not success:
+            if filename in dl_history:
                 continue
 
-        if not stop_event.is_set() and (amount == 0 or downloaded < amount):
-            time.sleep(anti_ban_pause)
+            filepath = os.path.join(tag_dir, filename)
+            if os.path.exists(filepath):
+                continue
+
+            collected.append(url)
+
+        page += 1
+        has_next = data.get("hasNextPage", False)
+        if not has_next or (stop_event.is_set()) or (amount > 0 and len(collected) >= amount):
+            break
+        time.sleep(anti_ban_pause)
+
+    if not collected:
+        log_msg(name, "No new images to download.")
+        log_msg(name, "--- Worker Terminated ---")
+        return
+
+    log_msg(name, f"Collected {len(collected)} images. Starting download...")
+
+    downloaded = 0
+    for url in collected:
+        if stop_event.is_set(): break
+
+        filename = url.split('/')[-1]
+        filepath = os.path.join(tag_dir, filename)
+
+        success = False
+        for dl_attempt in range(dl_retries):
+            try:
+                r = session.get(url, stream=True, timeout=api_timeout)
+                r.raise_for_status()
+                with open(filepath, 'wb') as f:
+                    for chunk in r.iter_content(8192):
+                        if stop_event.is_set(): break
+                        f.write(chunk)
+                if stop_event.is_set():
+                    os.remove(filepath)
+                    break
+
+                downloaded += 1
+                dl_history.add(filename)
+                save_history(site_root, dl_history)
+                log_msg(name, f"[SUCCESS] Downloaded {filename} ({downloaded}/{amount})")
+                success = True
+                break
+            except Exception as e:
+                if dl_attempt < 2:
+                    log_msg(name, f"[RETRY {dl_attempt+1}/{dl_retries}] {filename}: {e}")
+                    time.sleep(2)
+                else:
+                    log_msg(name, f"[FAILED] {filename}: {e}")
+        if not success:
+            continue
 
     log_msg(name, "--- Worker Terminated ---")

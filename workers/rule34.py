@@ -1,9 +1,4 @@
-import os
-import time
-import threading
-import random
-import re
-
+import os, time, threading, random, re
 import shared
 from shared import log_msg, STOP_EVENTS, load_history, save_history
 from rule34Py import rule34Py
@@ -74,13 +69,12 @@ def worker_rule34(tag, amount, method, sort_type, sort_order, exclusions, net_co
             client.session.proxies = {"http": "", "https": "", "no_proxy": "*"}
             client.session.verify = False
 
-        downloaded = 0
+        collected = []
         page = 0
-        empty_pages = 0
 
-        while not stop_event.is_set() and (amount == 0 or downloaded < amount):
+        while not stop_event.is_set() and (amount == 0 or len(collected) < amount):
             log_msg(name, f"Scanning via rule34Py... (Page {page})")
-            chunk_limit = min(1000, amount - downloaded if amount > 0 else 100)
+            chunk_limit = min(1000, amount - len(collected) if amount > 0 else 100)
             results = None
             max_retries = 5
 
@@ -109,77 +103,84 @@ def worker_rule34(tag, amount, method, sort_type, sort_order, exclusions, net_co
                 else: log_msg(name, "End of database reached.")
                 break
 
-            page_downloaded = 0
+            had_valid = False
             for result in results:
-                if stop_event.is_set() or (amount > 0 and downloaded >= amount): break
+                if stop_event.is_set() or (amount > 0 and len(collected) >= amount): break
                 file_url = result.image
                 if not file_url: continue
-                
+
                 ext = file_url.split('.')[-1].lower()
-                
-                # --- VIDEO/IMAGE FILTERING LOGIC ---
+
                 if ext in ["mp4", "webm", "zip"] and "-video" in exclusions: continue
                 if ext in ["jpg", "jpeg", "png", "webp"] and "-image" in exclusions: continue
                 if ext == "gif" and "-gif" in exclusions: continue
 
                 post_id = getattr(result, 'id', random.randint(1000, 99999))
                 filename = f"{post_id}.{ext}"
+                if filename in dl_history:
+                    continue
+
                 filepath = os.path.join(tag_dir, filename)
-
-                if filename in dl_history or os.path.exists(filepath):
-                    log_msg(name, f"[SKIP] {filename} (Already in history/disk)")
+                if os.path.exists(filepath):
                     continue
 
-                success = False
-                for dl_attempt in range(dl_retries):
-                    try:
-                        resp = client.session.get(file_url, stream=True, timeout=30)
-                        resp.raise_for_status()
-                        with open(filepath, 'wb') as f:
-                            for chunk in resp.iter_content(8192):
-                                if stop_event.is_set(): break
-                                f.write(chunk)
+                tags_raw = getattr(result, 'tags', "")
+                if isinstance(tags_raw, str): tags_list = [t.strip() for t in tags_raw.split() if t.strip()]
+                else: tags_list = [str(t).strip() for t in tags_raw if str(t).strip()]
 
-                        if stop_event.is_set():
-                            os.remove(filepath)
-                            break
-
-                        downloaded += 1
-                        page_downloaded += 1
-                        dl_history.add(filename)
-                        save_history(site_root, dl_history)
-
-                        tags_raw = getattr(result, 'tags', "")
-                        if isinstance(tags_raw, str): tags_list = [t.strip() for t in tags_raw.split() if t.strip()]
-                        else: tags_list = [str(t).strip() for t in tags_raw if str(t).strip()]
-
-                        log_msg(name, f"[SUCCESS] Downloaded {filename} ({downloaded}/{amount})")
-                        shared.send_tags(name, filename, tags_list, [])
-                        time.sleep(random.uniform(0.6, 1.2))
-                        success = True
-                        break
-                    except Exception as e:
-                        if dl_attempt < 2:
-                            log_msg(name, f"[RETRY {dl_attempt+1}/{dl_retries}] {filename}: {e}")
-                            time.sleep(2)
-                        else:
-                            log_msg(name, f"[FAILED] {filename}: {e}")
-                if not success:
-                    continue
+                collected.append((file_url, filename, tags_list))
+                had_valid = True
 
             page += 1
-            if not stop_event.is_set() and (amount == 0 or downloaded < amount):
-                if page_downloaded > 0:
-                    empty_pages = 0
-                    delay = random.uniform(anti_ban_pause, anti_ban_pause + 2.0)
-                    log_msg(name, f"Anti-ban pause... ({delay:.1f}s)")
-                    time.sleep(delay)
-                else:
-                    empty_pages += 1
-                    if empty_pages >= 10:
-                        empty_pages = 0
-                        log_msg(name, "10 skipped pages, anti-spam pause... (5.0s)")
-                        time.sleep(5.0)
+            if had_valid and not stop_event.is_set() and (amount == 0 or len(collected) < amount):
+                delay = random.uniform(anti_ban_pause, anti_ban_pause + 2.0)
+                log_msg(name, f"Anti-ban pause... ({delay:.1f}s)")
+                time.sleep(delay)
+
+        if not collected:
+            log_msg(name, "No new images to download.")
+            log_msg(name, "--- Worker Terminated ---")
+            return
+
+        log_msg(name, f"Collected {len(collected)} images. Starting download...")
+
+        downloaded = 0
+        for file_url, filename, tags_list in collected:
+            if stop_event.is_set(): break
+
+            filepath = os.path.join(tag_dir, filename)
+
+            success = False
+            for dl_attempt in range(dl_retries):
+                try:
+                    resp = client.session.get(file_url, stream=True, timeout=30)
+                    resp.raise_for_status()
+                    with open(filepath, 'wb') as f:
+                        for chunk in resp.iter_content(8192):
+                            if stop_event.is_set(): break
+                            f.write(chunk)
+
+                    if stop_event.is_set():
+                        os.remove(filepath)
+                        break
+
+                    downloaded += 1
+                    dl_history.add(filename)
+                    save_history(site_root, dl_history)
+
+                    log_msg(name, f"[SUCCESS] Downloaded {filename} ({downloaded}/{amount})")
+                    shared.send_tags(name, filename, tags_list, [])
+                    time.sleep(anti_ban_pause)
+                    success = True
+                    break
+                except Exception as e:
+                    if dl_attempt < 2:
+                        log_msg(name, f"[RETRY {dl_attempt+1}/{dl_retries}] {filename}: {e}")
+                        time.sleep(2)
+                    else:
+                        log_msg(name, f"[FAILED] {filename}: {e}")
+                if not success:
+                    continue
 
     except Exception as e:
         log_msg(name, f"Unexpected Error: {str(e)}")

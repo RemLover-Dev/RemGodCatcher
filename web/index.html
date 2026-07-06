@@ -57,7 +57,7 @@
 
                     <div class="console-wrapper" style="min-height: 120px;">
                         <button class="clear-log-btn" onclick="clearLog('main')">Clear</button>
-                        <pre id="consoleLog_main"></pre>
+                        <div id="consoleLog_main" class="console-log"></div>
                     </div>
                 </div>
             </div>
@@ -79,11 +79,11 @@
                 </div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('neko')">Clear</button>
-                    <pre id="consoleLog_neko"></pre>
+                    <div id="consoleLog_neko" class="console-log"></div>
                 </div>
             </div>
 
-            <div id="NekosLife" class="tab-content" style="display: none;">
+<div id="NekosLife" class="tab-content" style="display: none;">
                 <h2>Nekos.life Downloader</h2>
                 <div class="input-group">
                     <label>Category:</label>
@@ -119,6 +119,12 @@
                         </optgroup>
                     </select>
                     <span id="nekosLifeType" style="color: var(--accent-color); font-size: 12px; font-weight: bold; margin-left: 5px;"></span>
+                    <label id="nekosLifeFormatLabel" style="margin-left: 10px; display: none;">Format:</label>
+                    <select id="nekosLifeFormat" style="width: 120px; display: none;" onchange="updateNekosLifeFormatHint()">
+                        <option value="both">Both (GIF & Image)</option>
+                        <option value="gif">GIF Only</option>
+                        <option value="image">Image Only</option>
+                    </select>
                     <label style="margin-left: 10px;">Amount:</label>
                     <input type="number" id="nekosLifeAmount" value="20" style="width: 80px;">
                     <button class="action-btn" onclick="startWorker('nekos_life')">START</button>
@@ -126,7 +132,7 @@
                 </div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('nekos_life')">Clear</button>
-                    <pre id="consoleLog_nekos_life"></pre>
+                    <div id="consoleLog_nekos_life" class="console-log"></div>
                 </div>
             </div>
 
@@ -143,7 +149,7 @@
                 </div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('zero')">Clear</button>
-                    <pre id="consoleLog_zero"></pre>
+                    <div id="consoleLog_zero" class="console-log"></div>
                 </div>
             </div>
 
@@ -151,8 +157,7 @@
                 <h2>Waifu.im Downloader</h2>
                 <div class="input-group">
                     <label>Tag:</label>
-                    <input type="text" id="waifuTag" list="waifuList" placeholder="e.g. waifu">
-                    <datalist id="waifuList"></datalist>
+                    <select id="waifuTag" style="width: 160px;"></select>
                     <input type="checkbox" id="waifuNsfw"> <label>NSFW</label>
                     <label>Limit:</label>
                     <input type="number" id="waifuLimit" value="30" style="width: 80px;">
@@ -161,7 +166,7 @@
                 </div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('waifu')">Clear</button>
-                    <pre id="consoleLog_waifu"></pre>
+                    <div id="consoleLog_waifu" class="console-log"></div>
                 </div>
             </div>
 
@@ -176,17 +181,10 @@
                     <button class="action-btn" onclick="startWorker('safe')">START</button>
                     <button class="action-btn stop-btn" onclick="stopWorker('safe')">STOP</button>
                 </div>
-                <div class="input-group" style="margin-top: 10px; font-size: 14px; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px;">
-                    <label style="color: var(--accent-color); font-weight: bold; margin-right: 10px;">Format:</label>
-                    <select id="safeFormat" style="margin-right: 15px;">
-                        <option value="images">Images Only</option>
-                        <option value="all">Images & Videos</option>
-                        <option value="videos">Videos Only</option>
-                    </select>
-                </div>
+
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('safe')">Clear</button>
-                    <pre id="consoleLog_safe"></pre>
+                    <div id="consoleLog_safe" class="console-log"></div>
                 </div>
             </div>
 
@@ -212,7 +210,7 @@
                 </div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('gelbooru')">Clear</button>
-                    <pre id="consoleLog_gelbooru"></pre>
+                    <div id="consoleLog_gelbooru" class="console-log"></div>
                 </div>
             </div>
 
@@ -260,7 +258,7 @@
                 </div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('rule34')">Clear</button>
-                    <pre id="consoleLog_rule34"></pre>
+                    <div id="consoleLog_rule34" class="console-log"></div>
                 </div>
             </div>
 
@@ -283,7 +281,7 @@
                 </div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('yande')">Clear</button>
-                    <pre id="consoleLog_yande"></pre>
+                    <div id="consoleLog_yande" class="console-log"></div>
                 </div>
             </div>
 
@@ -315,7 +313,7 @@
                 </div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('kona')">Clear</button>
-                    <pre id="consoleLog_kona"></pre>
+                    <div id="consoleLog_kona" class="console-log"></div>
                 </div>
             </div>
 

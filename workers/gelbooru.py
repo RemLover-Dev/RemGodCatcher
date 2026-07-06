@@ -1,9 +1,4 @@
-import os
-import time
-import threading
-import random
-import re
-
+import os, time, threading, random, re
 import shared
 from shared import log_msg, STOP_EVENTS, load_history, save_history, get_session
 
@@ -30,22 +25,17 @@ def worker_gelbooru(tag, amount, exclusions, net_config):
     api_key = os.getenv("GELBOORU_API_KEY", "")
     user_id = os.getenv("GELBOORU_USER_ID", "")
 
-    downloaded = 0
+    collected = []
     pid = 0
 
-    while not stop_event.is_set() and (amount == 0 or downloaded < amount):
+    while not stop_event.is_set() and (amount == 0 or len(collected) < amount):
         try:
             log_msg(name, f"Scanning API... (Page {pid})")
-            limit_val = min(100, amount - downloaded if amount > 0 else 100)
+            limit_val = min(100, amount - len(collected) if amount > 0 else 100)
 
             params = {
-                "page": "dapi",
-                "s": "post",
-                "q": "index",
-                "tags": tag,
-                "pid": pid,
-                "limit": limit_val,
-                "json": 1
+                "page": "dapi", "s": "post", "q": "index",
+                "tags": tag, "pid": pid, "limit": limit_val, "json": 1
             }
             if api_key and user_id:
                 params["api_key"] = api_key
@@ -53,13 +43,13 @@ def worker_gelbooru(tag, amount, exclusions, net_config):
 
             resp = session.get("https://gelbooru.com/index.php", params=params, timeout=15)
             if resp.status_code == 401:
-                log_msg(name, "❌ ERROR 401: Unauthorized! Gelbooru blocked this request.")
-                log_msg(name, "💡 FIX: You MUST enter a valid Gelbooru API Key & User ID in the Options Tab!")
+                log_msg(name, "ERROR 401: Unauthorized! Gelbooru blocked this request.")
+                log_msg(name, "FIX: Enter a valid Gelbooru API Key & User ID in the Options Tab!")
                 break
             elif resp.status_code in [403, 429]:
                 log_msg(name, f"ERROR {resp.status_code}. Change proxy or slow down.")
                 break
-                
+
             resp.raise_for_status()
             data = resp.json()
 
@@ -76,70 +66,85 @@ def worker_gelbooru(tag, amount, exclusions, net_config):
             time.sleep(5)
             continue
 
-        page_downloaded = 0
-        skipped = 0
+        had_valid = False
         for post in posts:
-            if stop_event.is_set() or (amount > 0 and downloaded >= amount): break
+            if stop_event.is_set() or (amount > 0 and len(collected) >= amount): break
             if not isinstance(post, dict): continue
 
             file_url = post.get("file_url", "")
             if not file_url: continue
 
             ext = file_url.split('.')[-1].lower()
-            
-            # --- VIDEO/IMAGE FILTERING LOGIC ---
+
             if ext in ["mp4", "webm", "zip"] and "-video" in exclusions: continue
             if ext in ["jpg", "jpeg", "png", "webp"] and "-image" in exclusions: continue
             if ext == "gif" and "-gif" in exclusions: continue
 
             filename = file_url.split('/')[-1].split('?')[0]
+            if filename in dl_history:
+                continue
+
             filepath = os.path.join(tag_dir, filename)
-
-            if filename in dl_history or os.path.exists(filepath):
-                skipped += 1
+            if os.path.exists(filepath):
                 continue
 
-            success = False
-            for dl_attempt in range(dl_retries):
-                try:
-                    r = session.get(file_url, stream=True, timeout=20, headers={"Referer": "https://gelbooru.com/"})
-                    r.raise_for_status()
+            tags_raw = post.get("tags", "")
+            tags_list = [t.strip() for t in tags_raw.split() if t.strip()]
 
-                    with open(filepath, 'wb') as f:
-                        for chunk in r.iter_content(8192):
-                            if stop_event.is_set(): break
-                            f.write(chunk)
-                    if stop_event.is_set():
-                        os.remove(filepath)
-                        break
-
-                    downloaded += 1
-                    page_downloaded += 1
-                    dl_history.add(filename)
-                    save_history(site_root, dl_history)
-
-                    tags_raw = post.get("tags", "")
-                    tags_list = [t.strip() for t in tags_raw.split() if t.strip()]
-
-                    log_msg(name, f"[SUCCESS] Downloaded {filename} ({downloaded}/{amount})")
-                    shared.send_tags(name, filename, tags_list, [])
-                    time.sleep(random.uniform(0.5, 1.5))
-                    success = True
-                    break
-                except Exception as e:
-                    if dl_attempt < 2:
-                        log_msg(name, f"[RETRY {dl_attempt+1}/{dl_retries}] {filename}: {e}")
-                        time.sleep(2)
-                    else:
-                        log_msg(name, f"[FAILED] {filename}: {e}")
-            if not success:
-                continue
-
-        if skipped: log_msg(name, f"Skipped {skipped} images (already in history/disk)")
+            collected.append((file_url, filename, tags_list))
+            had_valid = True
 
         pid += 1
-        if page_downloaded > 0 and not stop_event.is_set() and (amount == 0 or downloaded < amount):
+        if had_valid and not stop_event.is_set() and (amount == 0 or len(collected) < amount):
             log_msg(name, f"Anti-ban pause... ({anti_ban_pause:.1f}s)")
             time.sleep(anti_ban_pause)
 
+    if not collected:
+        log_msg(name, "No new images to download.")
+        log_msg(name, "--- Worker Terminated ---")
+        return
+
+    log_msg(name, f"Collected {len(collected)} new images. Starting download...")
+
+    downloaded = 0
+    skipped = 0
+    for file_url, filename, tags_list in collected:
+        if stop_event.is_set(): break
+
+        filepath = os.path.join(tag_dir, filename)
+        if filename in dl_history or os.path.exists(filepath):
+            skipped += 1
+            continue
+
+        success = False
+        for dl_attempt in range(dl_retries):
+            try:
+                r = session.get(file_url, stream=True, timeout=20, headers={"Referer": "https://gelbooru.com/"})
+                r.raise_for_status()
+                with open(filepath, 'wb') as f:
+                    for chunk in r.iter_content(8192):
+                        if stop_event.is_set(): break
+                        f.write(chunk)
+                if stop_event.is_set():
+                    os.remove(filepath)
+                    break
+
+                downloaded += 1
+                dl_history.add(filename)
+                save_history(site_root, dl_history)
+                log_msg(name, f"[SUCCESS] Downloaded {filename} ({downloaded}/{amount})")
+                shared.send_tags(name, filename, tags_list, [])
+                time.sleep(random.uniform(0.5, 1.5))
+                success = True
+                break
+            except Exception as e:
+                if dl_attempt < 2:
+                    log_msg(name, f"[RETRY {dl_attempt+1}/{dl_retries}] {filename}: {e}")
+                    time.sleep(2)
+                else:
+                    log_msg(name, f"[FAILED] {filename}: {e}")
+        if not success:
+            continue
+
+    if skipped: log_msg(name, f"Skipped {skipped} images (already in history/disk)")
     log_msg(name, "--- Worker Terminated ---")

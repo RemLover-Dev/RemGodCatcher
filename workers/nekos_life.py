@@ -1,8 +1,4 @@
-import os
-import time
-import threading
-import random
-
+import os, time, threading, random
 import shared
 from shared import log_msg, STOP_EVENTS, load_history, save_history, get_session
 
@@ -10,7 +6,7 @@ GIF_ONLY = {"ngif", "hug", "pat", "cuddle", "tickle", "feed", "slap", "kiss", "s
 STATIC_ONLY = {"gecg", "meow", "neko", "lewd", "gasm", "8ball", "avatar", "woof", "fox_girl", "waifu"}
 MIXED = {"goose", "wallpaper", "lizard", "span"}
 
-def worker_nekos_life(category, amount, net_config):
+def worker_nekos_life(category, amount, net_config, fmt="both"):
     name = "nekos_life"
     STOP_EVENTS[name] = threading.Event()
     stop_event = STOP_EVENTS[name]
@@ -20,7 +16,7 @@ def worker_nekos_life(category, amount, net_config):
     elif category in STATIC_ONLY:
         log_msg(name, f"Initializing worker for category: '{category}' [STATIC ONLY]")
     elif category in MIXED:
-        log_msg(name, f"Initializing worker for category: '{category}' [MIXED - GIF/Static]")
+        log_msg(name, f"Initializing worker for category: '{category}' [MIXED] [Format: {fmt}]")
     else:
         log_msg(name, f"Initializing worker for category: '{category}' [UNKNOWN TYPE]")
 
@@ -28,18 +24,18 @@ def worker_nekos_life(category, amount, net_config):
     os.makedirs(site_root, exist_ok=True)
     dl_history = load_history(site_root)
 
-    cat_dir = os.path.join(site_root, category)
-    os.makedirs(cat_dir, exist_ok=True)
+    gifs_root = os.path.join(site_root, "Gifs")
+    images_root = os.path.join(site_root, "Images")
     session = get_session("neko", net_config)
     anti_ban_pause = float(net_config.get("anti_ban_pause", 3.0))
     dl_retries = int(net_config.get("download_retries", 3))
 
-    downloaded = 0
-    duplicate_count = 0
     api_base = "https://nekos.life/api/v2"
     fetch_url = f"{api_base}/img/{category}"
 
-    while not stop_event.is_set() and (amount == 0 or downloaded < amount):
+    collected = []
+
+    while not stop_event.is_set() and (amount == 0 or len(collected) < amount):
         try:
             log_msg(name, "Scanning API...")
             resp = session.get(fetch_url, timeout=10)
@@ -60,17 +56,42 @@ def worker_nekos_life(category, amount, net_config):
         if stop_event.is_set(): break
 
         filename = url.split('/')[-1]
-        filepath = os.path.join(cat_dir, filename)
+        is_gif = filename.lower().endswith(".gif")
+
+        if category in MIXED:
+            if fmt == "gif" and not is_gif:
+                continue
+            elif fmt == "image" and is_gif:
+                continue
+
+        type_dir = os.path.join(gifs_root if is_gif else images_root, category)
+        os.makedirs(type_dir, exist_ok=True)
+        filepath = os.path.join(type_dir, filename)
 
         if filename in dl_history or os.path.exists(filepath):
-            duplicate_count += 1
-            if duplicate_count >= 20:
-                log_msg(name, "Database exhausted! Too many duplicates. Stopping.")
-                break
-            time.sleep(0.5)
             continue
 
-        duplicate_count = 0
+        collected.append((url, filename, is_gif))
+
+        if not stop_event.is_set() and (amount == 0 or len(collected) < amount):
+            log_msg(name, f"Anti-ban pause... ({anti_ban_pause:.1f}s)")
+            time.sleep(anti_ban_pause)
+
+    if not collected:
+        log_msg(name, "No new images to download.")
+        log_msg(name, "--- Worker Terminated ---")
+        return
+
+    log_msg(name, f"Collected {len(collected)} images. Starting download...")
+
+    downloaded = 0
+    for url, filename, is_gif in collected:
+        if stop_event.is_set(): break
+
+        type_dir = os.path.join(gifs_root if is_gif else images_root, category)
+        os.makedirs(type_dir, exist_ok=True)
+        filepath = os.path.join(type_dir, filename)
+
         success = False
         for dl_attempt in range(dl_retries):
             try:
@@ -87,9 +108,8 @@ def worker_nekos_life(category, amount, net_config):
                 downloaded += 1
                 dl_history.add(filename)
                 save_history(site_root, dl_history)
-
                 log_msg(name, f"[SUCCESS] Downloaded {filename} ({downloaded}/{amount})")
-                time.sleep(random.uniform(0.3, 1.2))
+                time.sleep(anti_ban_pause)
                 success = True
                 break
             except Exception as e:
@@ -100,9 +120,5 @@ def worker_nekos_life(category, amount, net_config):
                     log_msg(name, f"[FAILED] {filename}: {e}")
         if not success:
             continue
-
-        if not stop_event.is_set() and (amount == 0 or downloaded < amount):
-            log_msg(name, f"Anti-ban pause... ({anti_ban_pause:.1f}s)")
-            time.sleep(anti_ban_pause)
 
     log_msg(name, "--- Worker Terminated ---")
