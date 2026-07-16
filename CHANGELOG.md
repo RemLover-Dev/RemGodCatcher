@@ -9,13 +9,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [4.3.0] - The Async Engine Rewrite - 2026-07-16
 
 ### Added
-- **BaseDownloader OOP Engine** -- All workers now inherit from a shared `BaseDownloader` class with built-in asyncio download queue, 3 concurrent download workers, retry logic, history tracking, and tag dispatch. Eliminates hundreds of lines of duplicated code across all 10 workers.
-- **Asyncio Download Pipeline** -- Scrapers produce items into an `asyncio.Queue`; 3 parallel download workers consume from it. Downloads no longer block the scraper — API scanning and file downloads happen concurrently.
+- **BaseDownloader OOP Engine** -- All workers now inherit from a shared `BaseDownloader` class with built-in asyncio download queue, retry logic, history tracking, and tag dispatch. Eliminates hundreds of lines of duplicated code across all 10 workers.
+- **Two-Phase Pipeline** -- Phase 1 gathers all links from API without downloading. Phase 2 downloads images with 8 parallel workers for maximum speed.
+- **Visual Progress Bars** -- Every worker tab now has an animated progress bar above the console. Shows percentage during Phase 2 downloads, turns green on completion, auto-hides after 3 seconds.
 
 ### Changed
 - **All Workers Rewritten** -- `danbooru.py`, `gelbooru.py`, `konachan.py`, `nekos_best.py`, `nekos_life.py`, `rule34.py`, `safebooru.py`, `waifu_im.py`, `yande.py`, `zerochan.py` converted from procedural functions to OOP classes inheriting `BaseDownloader`.
 - **User-Agent Header** -- Changed from Chrome browser UA (`Mozilla/5.0 ... Chrome/120.0.0.0`) to app-format UA (`RemGodCatcher/4.0 (by RemLover on GitHub)`). Fixes 403 Forbidden on Danbooru (which blocks browser UAs on API) and reduces Cloudflare flags on Nekos.best.
-- **shared.py** -- Removed old per-site `get_session()` function. Session setup now lives in `BaseDownloader._setup_session()` with a single standardized UA for all workers. Added `asyncio` import and `BaseDownloader` class with `_async_download_file()`, `_download_worker()`, and `run_async_loop()`.
+- **shared.py** -- Removed old per-site `get_session()` function. Session setup now lives in `BaseDownloader._setup_session()` with a single standardized UA for all workers. Added `asyncio` import and `BaseDownloader` class with two-phase pipeline: `_async_download_file()`, `_download_worker()`, and `run_async_loop()`. Download count now shows actual total (not user limit).
 - **Zerochan API URL** -- Removed duplicate `p=1` parameter caused by embedding page number in both the URL query string and `params` dict. Parameters now sent cleanly via `params={"json": "1", "p": page, "l": 48}`. Fixes 503 Service Temporarily Unavailable from Cloudflare.
 - **Mutable Default Argument** -- `send_tags()` default `artist_list=[]` changed to `artist_list=None` to prevent shared mutable state bugs.
 

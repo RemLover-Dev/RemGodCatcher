@@ -208,7 +208,54 @@ async function resetWallpapersUI() {
 
 const socket = io();
 
+const WORKER_TO_TAB = {
+    "neko": "neko", "nekos_life": "nekos_life", "zero": "zero", "waifu": "waifu",
+    "safe": "safe", "gelbooru": "gelbooru", "rule34": "rule34", "yande": "yande",
+    "kona": "kona", "dan": "dan"
+};
+
+function updateProgressBar(worker, msg) {
+    let key = WORKER_TO_TAB[worker];
+    if (!key) return;
+    let wrap = document.getElementById("progressWrap_" + key);
+    let fill = document.getElementById("progress_" + key);
+    if (!wrap || !fill) return;
+
+    if (msg.includes("Phase 2: Starting parallel download")) {
+        wrap.classList.add("active");
+        fill.classList.remove("done");
+        fill.style.width = "0%";
+        fill.textContent = "0%";
+        return;
+    }
+
+    if (msg.includes("[SUCCESS] Downloaded")) {
+        let m = msg.match(/\((\d+)\/(\d+)\)/);
+        if (m) {
+            let cur = parseInt(m[1]), tot = parseInt(m[2]);
+            let pct = tot > 0 ? Math.round((cur / tot) * 100) : 0;
+            fill.style.width = pct + "%";
+            fill.textContent = pct + "%";
+        }
+        return;
+    }
+
+    if (msg.includes("--- All") && msg.includes("downloads completed")) {
+        fill.classList.add("done");
+        fill.style.width = "100%";
+        fill.textContent = "100%";
+        setTimeout(() => { wrap.classList.remove("active"); fill.classList.remove("done"); }, 3000);
+        return;
+    }
+
+    if (msg.includes("No new images") || msg.includes("Task finished")) {
+        wrap.classList.remove("active");
+        return;
+    }
+}
+
 socket.on("python_log", function (data) {
+    updateProgressBar(data.worker, data.msg);
     logToConsole(data.worker, data.msg);
 });
 
@@ -494,11 +541,29 @@ function startWorker(workerName) {
     }
     
     socket.emit("start_worker", payload);
+
+    let key = WORKER_TO_TAB[workerName];
+    if (key) {
+        let wrap = document.getElementById("progressWrap_" + key);
+        let fill = document.getElementById("progress_" + key);
+        if (wrap && fill) {
+            wrap.classList.add("active");
+            fill.classList.remove("done");
+            fill.style.width = "0%";
+            fill.textContent = "Gathering...";
+        }
+    }
+
     setTimeout(loadTagsData, 1000); // آپدیت خودکار لیست هیستوری بعد از یک ثانیه
 }
 
 function stopWorker(workerName) {
     socket.emit("stop_worker", { worker: workerName });
+    let key = WORKER_TO_TAB[workerName];
+    if (key) {
+        let wrap = document.getElementById("progressWrap_" + key);
+        if (wrap) wrap.classList.remove("active");
+    }
 }
 
 async function loadApiSettings() {

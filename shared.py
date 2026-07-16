@@ -52,31 +52,30 @@ class BaseDownloader:
         self.site_folder = site_folder
         self.amount = int(amount)
         self.net_config = net_config
-        
+
         if name in STOP_EVENTS and STOP_EVENTS[name] is not None: STOP_EVENTS[name].set()
         self.stop_event = threading.Event()
         STOP_EVENTS[name] = self.stop_event
-        
+
         self.anti_ban_pause = float(net_config.get("anti_ban_pause", 3.0))
         self.dl_retries = int(net_config.get("download_retries", 3))
-        
+
         self.site_root = os.path.join(MASTER_FOLDER, site_folder)
         os.makedirs(self.site_root, exist_ok=True)
         self.dl_history = load_history(self.site_root)
-        
+
         self.session = self._setup_session()
         self.downloaded_count = 0
+        self.total_to_download = 0
         self.download_queue = None
-        self.producer_done = False
 
     def _setup_session(self):
         session = requests.Session()
         if self.net_config.get("use_proxy"):
             p = self.net_config.get("proxy_url")
             session.proxies = {"http": p, "https": p}
-            
         session.verify = self.net_config.get("verify_tls", False)
-        
+
         session.headers.update({
             "User-Agent": "RemGodCatcher/4.0 (by RemLover on GitHub)",
             "Accept": "application/json"
@@ -103,7 +102,7 @@ class BaseDownloader:
                             if self.stop_event.is_set(): break
                             f.write(chunk)
                 await asyncio.to_thread(write_file)
-                
+
                 if self.stop_event.is_set():
                     if os.path.exists(filepath): os.remove(filepath)
                     return False
@@ -111,13 +110,11 @@ class BaseDownloader:
                 self.downloaded_count += 1
                 self.dl_history.add(filename)
                 save_history(self.site_root, self.dl_history)
-                
-                amount_str = str(self.amount) if self.amount > 0 else '∞'
-                self.log(f"[SUCCESS] Downloaded {filename} ({self.downloaded_count}/{amount_str})")
-                
+
+                self.log(f"[SUCCESS] Downloaded {filename} ({self.downloaded_count}/{self.total_to_download})")
                 send_tags(self.name, filename, tags_list, artists)
                 return True
-                
+
             except Exception as e:
                 if self.stop_event.is_set(): break
                 if attempt < self.dl_retries - 1: await asyncio.sleep(2)
@@ -126,22 +123,30 @@ class BaseDownloader:
 
     async def _download_worker(self):
         while not self.stop_event.is_set():
-            try:
-                item = await asyncio.wait_for(self.download_queue.get(), timeout=1.0)
-                try: await self._async_download_file(*item)
-                finally: self.download_queue.task_done()
-            except asyncio.TimeoutError:
-                if self.producer_done and self.download_queue.empty(): break
-            except Exception as e: self.log(f"Worker Error: {e}")
+            if self.download_queue.empty(): break
+            item = await self.download_queue.get()
+            try: await self._async_download_file(*item)
+            finally: self.download_queue.task_done()
 
     async def run_async_loop(self, scraper_coroutine):
         self.download_queue = asyncio.Queue()
-        num_workers = 3
-        download_tasks = [asyncio.create_task(self._download_worker()) for _ in range(num_workers)]
-        
+
+        self.log("Phase 1: Gathering links from API... Please wait.")
         try: await scraper_coroutine()
         except Exception as e: self.log(f"Scraper Error: {e}")
-        
-        self.producer_done = True
-        if not self.stop_event.is_set(): await self.download_queue.join()
-        for t in download_tasks: t.cancel()
+
+        self.total_to_download = self.download_queue.qsize()
+
+        if self.total_to_download > 0 and not self.stop_event.is_set():
+            self.log(f"Phase 2: Starting parallel download of {self.total_to_download} images...")
+
+            num_workers = 8
+            download_tasks = [asyncio.create_task(self._download_worker()) for _ in range(num_workers)]
+
+            await self.download_queue.join()
+            for t in download_tasks: t.cancel()
+
+            self.log(f"--- All {self.downloaded_count} downloads completed successfully! ---")
+        else:
+            if not self.stop_event.is_set():
+                self.log("Task finished. No new images to download.")

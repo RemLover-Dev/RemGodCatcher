@@ -74,6 +74,7 @@
                     <button class="action-btn" onclick="startWorker('neko')">START</button>
                     <button class="action-btn stop-btn" onclick="stopWorker('neko')">STOP</button>
                 </div>
+                <div class="worker-progress" id="progressWrap_neko"><div class="worker-progress-fill" id="progress_neko">0%</div></div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('neko')">Clear</button>
                     <div id="consoleLog_neko" class="console-log"></div>
@@ -127,6 +128,7 @@
                     <button class="action-btn" onclick="startWorker('nekos_life')">START</button>
                     <button class="action-btn stop-btn" onclick="stopWorker('nekos_life')">STOP</button>
                 </div>
+                <div class="worker-progress" id="progressWrap_nekos_life"><div class="worker-progress-fill" id="progress_nekos_life">0%</div></div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('nekos_life')">Clear</button>
                     <div id="consoleLog_nekos_life" class="console-log"></div>
@@ -144,6 +146,7 @@
                     <button class="action-btn" onclick="startWorker('zero')">START</button>
                     <button class="action-btn stop-btn" onclick="stopWorker('zero')">STOP</button>
                 </div>
+                <div class="worker-progress" id="progressWrap_zero"><div class="worker-progress-fill" id="progress_zero">0%</div></div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('zero')">Clear</button>
                     <div id="consoleLog_zero" class="console-log"></div>
@@ -161,6 +164,7 @@
                     <button class="action-btn" onclick="startWorker('waifu')">START</button>
                     <button class="action-btn stop-btn" onclick="stopWorker('waifu')">STOP</button>
                 </div>
+                <div class="worker-progress" id="progressWrap_waifu"><div class="worker-progress-fill" id="progress_waifu">0%</div></div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('waifu')">Clear</button>
                     <div id="consoleLog_waifu" class="console-log"></div>
@@ -178,6 +182,8 @@
                     <button class="action-btn" onclick="startWorker('safe')">START</button>
                     <button class="action-btn stop-btn" onclick="stopWorker('safe')">STOP</button>
                 </div>
+
+                <div class="worker-progress" id="progressWrap_safe"><div class="worker-progress-fill" id="progress_safe">0%</div></div>
 
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('safe')">Clear</button>
@@ -212,6 +218,7 @@
                     </select>
                     <input type="checkbox" id="gelNoAI"> <label for="gelNoAI">Exclude AI</label>
                 </div>
+                <div class="worker-progress" id="progressWrap_gelbooru"><div class="worker-progress-fill" id="progress_gelbooru">0%</div></div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('gelbooru')">Clear</button>
                     <div id="consoleLog_gelbooru" class="console-log"></div>
@@ -260,6 +267,7 @@
                     <input type="checkbox" id="exComic"> <label for="exComic" style="margin-right: 10px;">Comic</label>
                     <input type="checkbox" id="ex3D"> <label for="ex3D">3D</label>
                 </div>
+                <div class="worker-progress" id="progressWrap_rule34"><div class="worker-progress-fill" id="progress_rule34">0%</div></div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('rule34')">Clear</button>
                     <div id="consoleLog_rule34" class="console-log"></div>
@@ -283,6 +291,7 @@
                     <button class="action-btn" onclick="startWorker('yande')">START</button>
                     <button class="action-btn stop-btn" onclick="stopWorker('yande')">STOP</button>
                 </div>
+                <div class="worker-progress" id="progressWrap_yande"><div class="worker-progress-fill" id="progress_yande">0%</div></div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('yande')">Clear</button>
                     <div id="consoleLog_yande" class="console-log"></div>
@@ -315,6 +324,7 @@
                     </select>
                     <input type="checkbox" id="konaExGif"> <label for="konaExGif">Exclude GIF</label>
                 </div>
+                <div class="worker-progress" id="progressWrap_kona"><div class="worker-progress-fill" id="progress_kona">0%</div></div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('kona')">Clear</button>
                     <div id="consoleLog_kona" class="console-log"></div>
@@ -348,6 +358,7 @@
                     </select>
                     <input type="checkbox" id="danExGif"> <label for="danExGif">Exclude GIF</label>
                 </div>
+                <div class="worker-progress" id="progressWrap_dan"><div class="worker-progress-fill" id="progress_dan">0%</div></div>
                 <div class="console-wrapper">
                     <button class="clear-log-btn" onclick="clearLog('dan')">Clear</button>
                     <div id="consoleLog_dan" class="console-log"></div>
